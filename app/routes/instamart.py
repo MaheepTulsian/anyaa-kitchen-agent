@@ -54,7 +54,7 @@ def callback(code: str = "", state: str = "", error: str = "") -> HTMLResponse:
         swiggy_oauth.exchange_code(code, state)
     except swiggy_oauth.OAuthError as exc:
         return HTMLResponse(f"<p>Swiggy login failed: {exc}</p>", 400)
-    return HTMLResponse('<p>Logged in to Swiggy. <a href="/instamart-lab.html">Back</a></p>')
+    return HTMLResponse('<p>Instamart connected. Taking you back…</p><script>setTimeout(() => location.href = "/", 800)</script>')
 
 
 @router.post("/logout")

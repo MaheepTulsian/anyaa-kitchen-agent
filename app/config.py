@@ -6,6 +6,10 @@ from pathlib import Path
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-haiku-5-5")
 
+# agent_sdk: Claude Agent SDK on the local Claude login (dev) | api: Anthropic API key (later)
+LLM_BACKEND = os.getenv("LLM_BACKEND", "agent_sdk")
+LLM_MODEL = os.getenv("LLM_MODEL", ANTHROPIC_MODEL)
+
 AZURE_SPEECH_KEY = os.getenv("AZURE_SPEECH_KEY", "")
 AZURE_SPEECH_REGION = os.getenv("AZURE_SPEECH_REGION", "centralindia")
 AZURE_TTS_VOICE_HOUSEHOLD = os.getenv("AZURE_TTS_VOICE_HOUSEHOLD", "en-IN-NeerjaNeural")

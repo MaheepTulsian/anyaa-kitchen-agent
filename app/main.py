@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app import config
 from app.models import StateSnapshot
-from app.routes import instamart, speech
+from app.routes import household, instamart, speech
 from app.services.snapshot import build_snapshot
 from app.store import connect, init_schema
 from app.store.households import ensure_household
@@ -25,6 +25,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Anyaa Kitchen Agent", lifespan=lifespan)
 app.include_router(speech.router)
 app.include_router(instamart.router)
+app.include_router(household.router)
 
 
 @app.get("/health")
