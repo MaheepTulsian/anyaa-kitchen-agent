@@ -1,0 +1,19 @@
+services:
+  api:
+    build: .
+    image: anyaa-kitchen-agent
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DB_PATH: /app/data/household.db
+      LOG_PATH: /app/logs/events.jsonl
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      # Live code for development; uvicorn reloads on change.
+      - ./app:/app/app:ro
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    restart: unless-stopped
