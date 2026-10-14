@@ -14,8 +14,7 @@ from app import config
 from app.models import Model
 
 AUDIO_DIR = config.WEB_DIR / "audio"
-
-_token_cache: dict[str, float | str] = {}
+TOKEN_TTL_SECONDS = 9 * 60  # Azure tokens last 10 min; refresh a minute early
 
 
 class SpeechToken(Model):
@@ -33,6 +32,10 @@ class SpeechError(RuntimeError):
     pass
 
 
+_cached_token: SpeechToken | None = None
+_cached_until = 0.0
+
+
 def _require_key() -> str:
     if not config.AZURE_SPEECH_KEY:
         raise SpeechError("AZURE_SPEECH_KEY is not set")
@@ -40,21 +43,23 @@ def _require_key() -> str:
 
 
 def issue_token() -> SpeechToken:
-    """Short-lived token for the browser SDK. Tokens last 10 min; reuse one for 9."""
-    if _token_cache and time.time() < float(_token_cache["expires"]):
-        return SpeechToken(token=str(_token_cache["token"]), region=config.AZURE_SPEECH_REGION)
+    """Short-lived token for the browser SDK, reused until shortly before it expires."""
+    global _cached_token, _cached_until
+    if _cached_token and time.time() < _cached_until:
+        return _cached_token
 
     url = f"https://{config.AZURE_SPEECH_REGION}.api.cognitive.microsoft.com/sts/v1.0/issueToken"
     response = httpx.post(url, headers={"Ocp-Apim-Subscription-Key": _require_key()}, timeout=10)
     if response.status_code != 200:
         raise SpeechError(f"token request failed: {response.status_code} {response.text[:200]}")
 
-    _token_cache.update(token=response.text, expires=time.time() + 9 * 60)
-    return SpeechToken(token=response.text, region=config.AZURE_SPEECH_REGION)
+    _cached_token = SpeechToken(token=response.text, region=config.AZURE_SPEECH_REGION)
+    _cached_until = time.time() + TOKEN_TTL_SECONDS
+    return _cached_token
 
 
 def _voice_locale(voice: str) -> str:
-    """`hi-IN-SwaraNeural` -> `hi-IN`."""
+    """`en-IN-NeerjaNeural` -> `en-IN`."""
     return "-".join(voice.split("-")[:2])
 
 
