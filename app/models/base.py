@@ -12,5 +12,5 @@ class Model(BaseModel):
 
 
 NonEmptyStr = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
-ItemId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9_]+$")]
-"""Canonical ingredient or dish id, e.g. `oil_groundnut`, `rajma_chawal`."""
+ItemId = Annotated[str, StringConstraints(strip_whitespace=True, to_lower=True, min_length=1)]
+"""Ingredient or dish name as plain lowercase text, e.g. `groundnut oil`, `rajma chawal`."""

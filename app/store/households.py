@@ -15,6 +15,7 @@ def _to_model(row: sqlite3.Row) -> Household:
             "phase": row["phase"],
             "meals": json.loads(row["meals_json"]),
             "cuisine_prefs": json.loads(row["cuisine_prefs_json"]),
+            "meals_set": bool(row["meals_set"]),
             "profile_confirmed": bool(row["profile_confirmed"]),
             "created_at": row["created_at"],
         }
@@ -49,7 +50,8 @@ def set_phase(conn: sqlite3.Connection, household_id: int, phase: Phase) -> None
 def set_meals(conn: sqlite3.Connection, household_id: int, meals: list[Meal]) -> None:
     ordered = [meal.value for meal in Meal if meal in meals]
     conn.execute(
-        "UPDATE household SET meals_json = ? WHERE id = ?", (json.dumps(ordered), household_id)
+        "UPDATE household SET meals_json = ?, meals_set = 1 WHERE id = ?",
+        (json.dumps(ordered), household_id),
     )
     conn.commit()
 

@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS household (
   phase TEXT NOT NULL DEFAULT 'ONBOARDING',
   meals_json TEXT NOT NULL DEFAULT '["lunch","dinner"]',
   cuisine_prefs_json TEXT NOT NULL DEFAULT '[]',
+  meals_set INTEGER NOT NULL DEFAULT 0,       -- user explicitly chose which meals to plan
   profile_confirmed INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL
 );
@@ -40,7 +41,7 @@ CREATE TABLE IF NOT EXISTS constraint_ (
 CREATE TABLE IF NOT EXISTS cook_profile (
   household_id INTEGER PRIMARY KEY REFERENCES household(id) ON DELETE CASCADE,
   name TEXT,
-  language TEXT NOT NULL DEFAULT 'hi',
+  language TEXT NOT NULL DEFAULT 'en',
   visits_json TEXT NOT NULL,
   days_off_json TEXT NOT NULL DEFAULT '[]',
   known_dishes_json TEXT NOT NULL DEFAULT '[]',

@@ -25,6 +25,7 @@ class Household(Model):
     phase: Phase = Phase.ONBOARDING
     meals: list[Meal] = Field(default_factory=lambda: [Meal.LUNCH, Meal.DINNER])
     cuisine_prefs: list[str] = Field(default_factory=list)
+    meals_set: bool = False  # the user explicitly chose which meals to plan
     profile_confirmed: bool = False
     created_at: dt.datetime
 
@@ -75,7 +76,7 @@ class CookVisit(Model):
 
 class CookProfile(Model):
     name: str | None = None
-    language: Language = Language.HINDI
+    language: Language = Language.ENGLISH
     visits: list[CookVisit] = Field(default_factory=list)
     days_off: list[Weekday] = Field(default_factory=list)
     known_dishes: list[ItemId] = Field(default_factory=list)
