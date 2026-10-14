@@ -7,7 +7,10 @@ from app.models import StateSnapshot
 from app.store import constraints, cook, households, members, pantry
 
 
-def build_snapshot(conn: sqlite3.Connection, household_id: int) -> StateSnapshot:
+def build_snapshot(
+        conn: sqlite3.Connection,
+        household_id: int
+) -> StateSnapshot:
     household = households.ensure_household(conn, household_id)
     return StateSnapshot(
         household=household,
