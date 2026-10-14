@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Anyaa Kitchen</title>
+  <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@1.52.0/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle-min.js"></script>
+  <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body>
+<header>
+  <div class="brand">Anyaa <span class="muted">· your kitchen</span></div>
+  <div class="row">
+    <span id="phase" class="pill">…</span>
+    <span id="instamartBadge" class="pill">Instamart: …</span>
+    <label class="muted"><input type="checkbox" id="mute" /> Mute</label>
+    <button id="reset" class="ghost">Start over</button>
+  </div>
+</header>
+
+<main>
+  <section class="chat">
+    <div id="log" class="log"></div>
+    <div id="interim" class="interim"></div>
+    <form id="composer" class="composer">
+      <button type="button" id="mic" class="mic" title="Hold to talk, or tap to start and stop">🎙</button>
+      <input id="text" autocomplete="off" placeholder="Type, or hold the mic and talk…" />
+      <button class="primary">Send</button>
+    </form>
+  </section>
+
+  <aside class="panel">
+    <h2>Household</h2>
+    <div id="members" class="muted">Nobody yet.</div>
+    <div id="rules"></div>
+    <h2>Cook</h2>
+    <div id="cook" class="muted">Not set yet.</div>
+    <h2>Meals planned</h2>
+    <div id="meals" class="muted">Not set yet.</div>
+    <h2>Instamart</h2>
+    <div id="instamart" class="muted">…</div>
+    <details class="debug">
+      <summary>What the agent did</summary>
+      <div id="toolLog"></div>
+    </details>
+  </aside>
+</main>
+
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>
