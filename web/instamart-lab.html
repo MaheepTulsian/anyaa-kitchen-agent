@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Instamart Lab</title>
+  <style>
+    :root { --bg: #faf7f2; --card: #fff; --ink: #2b2620; --muted: #7a6f63; --accent: #c2410c; --line: #e8e1d6; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 15px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+    main { max-width: 820px; margin: 0 auto; padding: 24px 16px 48px; }
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    .sub { color: var(--muted); margin: 0 0 20px; }
+    section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    h2 { margin: 0 0 8px; font-size: 16px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+    input { flex: 1; min-width: 180px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+    button, a.btn { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font: inherit; cursor: pointer; color: inherit; text-decoration: none; }
+    .primary { background: var(--accent); color: #fff !important; border-color: var(--accent); }
+    .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; background: #f4efe7; }
+    .pill.live { background: #ecfdf5; color: #065f46; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+    td, th { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+    td.num, th.num { text-align: right; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .blocked { color: #b91c1c; }
+    pre { background: #f4efe7; padding: 10px; border-radius: 8px; overflow-x: auto; font-size: 12px; max-height: 320px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Instamart Lab</h1>
+  <p class="sub">Search products and build a cart. Cart only: nothing here can place an order.</p>
+
+  <section>
+    <h2>Connection</h2>
+    <div class="row">
+      <span id="mode" class="pill">…</span>
+      <a class="btn primary" href="/api/instamart/login">Log in to Swiggy</a>
+      <button id="logout">Log out</button>
+      <button id="loadTools">List Swiggy tools</button>
+    </div>
+    <div class="row" id="addressRow" style="margin-top:10px" hidden>
+      <label for="address">Deliver to</label>
+      <select id="address"></select>
+    </div>
+    <p class="muted">Search and cart use the real Swiggy MCP only when INSTAMART_MODE=mcp and you are logged in; otherwise the mock.</p>
+    <div id="tools"></div>
+  </section>
+
+  <section>
+    <h2>Search</h2>
+    <form id="searchForm" class="row">
+      <input id="q" value="toor dal" placeholder="e.g. groundnut oil, paneer, rajma" />
+      <button class="primary">Search</button>
+    </form>
+    <table id="results"></table>
+  </section>
+
+  <section>
+    <h2>Cart</h2>
+    <table id="cart"></table>
+    <p id="replaceWarning" class="muted blocked" hidden>Building replaces everything currently in your Instamart cart.</p>
+    <div class="row" style="margin-top:10px">
+      <button id="buildCart" class="primary">Build cart</button>
+      <button id="clearCart">Clear</button>
+    </div>
+    <div id="cartResult"></div>
+  </section>
+</main>
+
+<script type="module">
+  const $ = (id) => document.getElementById(id);
+  const rupees = (n) => `₹${Number(n).toFixed(0)}`;
+  const picked = new Map(); // product id -> { product, quantity }
+
+  async function refreshStatus() {
+    const s = await (await fetch("/api/instamart/status")).json();
+    $("mode").textContent = `Using: ${s.active}${s.logged_in ? " · logged in" : ""}`;
+    $("mode").className = `pill ${s.active === "mcp" ? "live" : ""}`;
+    $("replaceWarning").hidden = s.active !== "mcp";
+    $("addressRow").hidden = s.active !== "mcp";
+    if (s.active === "mcp") loadAddresses(s.address_id);
+  }
+
+  async function loadAddresses(selectedId) {
+    const res = await fetch("/api/instamart/addresses");
+    if (!res.ok) return;
+    const addresses = await res.json();
+    $("address").innerHTML = `<option value="">Choose an address…</option>` +
+      addresses.map((a) => `<option value="${a.id}" ${a.id === selectedId ? "selected" : ""}>${a.tag}</option>`).join("");
+    $("address").onchange = async () => {
+      const chosen = addresses.find((a) => a.id === $("address").value);
+      if (chosen) await fetch("/api/instamart/address", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(chosen) });
+    };
+  }
+
+  $("logout").onclick = async () => { await fetch("/api/instamart/logout", { method: "POST" }); refreshStatus(); };
+
+  $("loadTools").onclick = async () => {
+    const res = await fetch("/api/instamart/tools");
+    const body = await res.json();
+    if (!res.ok) return ($("tools").innerHTML = `<p class="blocked">${body.detail}</p>`);
+    $("tools").innerHTML = body.map((t) => `
+      <details><summary class="${t.blocked ? "blocked" : ""}"><b>${t.name}</b>${t.blocked ? " (blocked)" : ""} · ${t.description.slice(0, 90)}</summary>
+      <pre>${JSON.stringify(t.input_schema, null, 2)}</pre></details>`).join("");
+  };
+
+  $("searchForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const res = await fetch(`/api/instamart/search?q=${encodeURIComponent($("q").value)}`);
+    const items = await res.json();
+    if (!res.ok) return ($("results").innerHTML = `<tr><td class="blocked">${items.detail}</td></tr>`);
+    $("results").innerHTML = items.length
+      ? `<tr><th>Product</th><th>Pack</th><th class="num">Price</th><th></th></tr>` + items.map((p) => `
+        <tr><td>${p.name} <span class="muted">${p.brand ?? ""}</span></td><td>${p.pack}</td>
+        <td class="num">${rupees(p.price)}</td>
+        <td class="num">${p.in_stock ? `<button data-id="${p.id}">Add</button>` : `<span class="muted">Out of stock</span>`}</td></tr>`).join("")
+      : `<tr><td class="muted">No matches.</td></tr>`;
+    $("results").querySelectorAll("button").forEach((b) => (b.onclick = () => {
+      const product = items.find((p) => p.id === b.dataset.id);
+      const entry = picked.get(product.id) ?? { product, quantity: 0 };
+      entry.quantity += 1;
+      picked.set(product.id, entry);
+      renderPicked();
+    }));
+  };
+
+  function renderPicked() {
+    $("cart").innerHTML = picked.size
+      ? [...picked.values()].map(({ product, quantity }) => `<tr><td>${product.name}</td><td>${product.pack}</td><td class="num">× ${quantity}</td></tr>`).join("")
+      : `<tr><td class="muted">Nothing added yet.</td></tr>`;
+  }
+
+  $("clearCart").onclick = () => { picked.clear(); renderPicked(); $("cartResult").innerHTML = ""; };
+
+  $("buildCart").onclick = async () => {
+    const lines = [...picked.values()].map(({ product, quantity }) => ({ product_id: product.id, quantity }));
+    const res = await fetch("/api/instamart/cart", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(lines) });
+    const cart = await res.json();
+    if (!res.ok) return ($("cartResult").innerHTML = `<p class="blocked">${cart.detail}</p>`);
+    $("cartResult").innerHTML = `
+      <table><tr><th>Item</th><th class="num">Qty</th><th class="num">Total</th></tr>
+      ${cart.items.map((i) => `<tr><td>${i.product.name} (${i.product.pack})</td><td class="num">${i.quantity}</td><td class="num">${rupees(i.line_total)}</td></tr>`).join("")}
+      <tr><th>Total (${cart.mode})</th><th></th><th class="num">${rupees(cart.total)}</th></tr></table>
+      ${cart.unavailable.length ? `<p class="blocked">Unavailable: ${cart.unavailable.join(", ")}</p>` : ""}
+      <p class="muted">${cart.note}</p>`;
+  };
+
+  refreshStatus();
+  renderPicked();
+</script>
+</body>
+</html>

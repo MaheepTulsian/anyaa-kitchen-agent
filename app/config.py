@@ -14,12 +14,15 @@ AZURE_TTS_VOICE_COOK = os.getenv("AZURE_TTS_VOICE_COOK", "en-IN-NeerjaNeural")
 SPEECH_LANGUAGE = os.getenv("SPEECH_LANGUAGE", "en-IN")
 
 INSTAMART_MODE = os.getenv("INSTAMART_MODE", "mock")  # mock | mcp
-SWIGGY_MCP_URL = os.getenv("SWIGGY_MCP_URL", "https://mcp.swiggy.com/instamart")
+SWIGGY_MCP_URL = os.getenv("SWIGGY_MCP_URL", "https://mcp.swiggy.com/im")
+SWIGGY_AUTH_URL = "https://mcp.swiggy.com/auth"
 
 DB_PATH = Path(os.getenv("DB_PATH", "data/household.db"))
 LOG_PATH = Path(os.getenv("LOG_PATH", "logs/events.jsonl"))
 PLAN_WINDOW_DAYS = int(os.getenv("PLAN_WINDOW_DAYS", "3"))
 
-WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+ROOT_DIR = Path(__file__).resolve().parent.parent
+WEB_DIR = ROOT_DIR / "web"
+DATA_DIR = ROOT_DIR / "data"
 
 HOUSEHOLD_ID = 1  # one household per DB file
