@@ -1,0 +1,27 @@
+# Build spec and assignment brief stay local
+CLAUDE.md
+.claude/
+*.pdf
+
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Runtime state
+data/*.db
+data/*.db-*
+logs/
+web/audio/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
