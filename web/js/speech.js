@@ -81,25 +81,27 @@ export class Speaker {
   constructor() {
     this.muted = false;
     this.buffer = "";
-    this.synth = null;
+    this.synth = null; // Promise<SpeechSynthesizer>, created once and shared
+    this.queue = Promise.resolve(); // sentences are spoken strictly one after another
   }
 
-  async #synth() {
-    if (!this.synth) {
-      const cfg = await speechConfig("en-IN");
-      this.synth = new SpeechSDK.SpeechSynthesizer(
-        cfg,
-        SpeechSDK.AudioConfig.fromDefaultSpeakerOutput(),
-      );
-    }
+  #synth() {
+    // Keep the promise, not the result: sentences arriving together must share one synthesizer,
+    // otherwise each creates its own and they talk over each other.
+    this.synth ??= speechConfig("en-IN").then(
+      (cfg) => new SpeechSDK.SpeechSynthesizer(cfg, SpeechSDK.AudioConfig.fromDefaultSpeakerOutput()),
+    );
     return this.synth;
   }
 
-  async say(text) {
+  say(text) {
     const clean = cleanForSpeech(text);
-    if (this.muted || !clean) return;
-    const synth = await this.#synth();
-    synth.speakTextAsync(clean, () => {}, (err) => console.error("TTS", err));
+    if (this.muted || !clean) return this.queue;
+    this.queue = this.queue.then(async () => {
+      const synth = await this.#synth();
+      await new Promise((resolve) => synth.speakTextAsync(clean, resolve, (err) => { console.error("TTS", err); resolve(); }));
+    });
+    return this.queue;
   }
 
   feed(delta) {
@@ -118,8 +120,9 @@ export class Speaker {
 
   stop() {
     this.buffer = "";
+    this.queue = Promise.resolve();
     if (this.synth) {
-      this.synth.close();
+      this.synth.then((synth) => synth.close());
       this.synth = null;
     }
   }
