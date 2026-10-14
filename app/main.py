@@ -1,40 +1,42 @@
-"""FastAPI application factory."""
+"""FastAPI app."""
 
-from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api.deps import HOUSEHOLD_ID
-from app.api.routes_state import router as state_router
-from app.config import Settings, get_settings
-from app.events import EventLog
+from app import config
+from app.models import StateSnapshot
+from app.services.snapshot import build_snapshot
 from app.store import connect, init_schema
 from app.store.households import ensure_household
 
 
-def _bootstrap_database(settings: Settings) -> None:
-    conn = connect(settings.db_path)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    conn = connect(config.DB_PATH)
+    init_schema(conn)
+    ensure_household(conn, config.HOUSEHOLD_ID)
+    conn.close()
+    yield
+
+
+app = FastAPI(title="Anyaa Kitchen Agent", lifespan=lifespan)
+
+
+@app.get("/health")
+def health() -> dict:
+    return {
+        "status": "ok",
+        "instamart_mode": config.INSTAMART_MODE,
+        "llm_configured": bool(config.ANTHROPIC_API_KEY),
+        "speech_configured": bool(config.AZURE_SPEECH_KEY),
+    }
+
+
+@app.get("/api/state")
+def get_state() -> StateSnapshot:
+    conn = connect(config.DB_PATH)
     try:
-        init_schema(conn)
-        ensure_household(conn, HOUSEHOLD_ID)
+        return build_snapshot(conn, config.HOUSEHOLD_ID)
     finally:
         conn.close()
-
-
-def create_app(settings: Settings | None = None) -> FastAPI:
-    resolved = settings or get_settings()
-
-    @asynccontextmanager
-    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        _bootstrap_database(resolved)
-        app.state.settings = resolved
-        app.state.event_log = EventLog(resolved.log_path)
-        yield
-
-    app = FastAPI(title="Anyaa Kitchen Agent", version="0.1.0", lifespan=lifespan)
-    app.include_router(state_router)
-    return app
-
-
-app = create_app()

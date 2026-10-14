@@ -6,9 +6,8 @@ Decisions made while building, where the spec was silent or we deviated.
 
 - **uv + `pyproject.toml` instead of `requirements.txt`.** Lockfile gives reproducible Docker builds.
 - **Dependencies are added in the milestone that first uses them**, not all up front.
-- **Added:** `pydantic-settings` (typed, validated env instead of raw `python-dotenv`), `tzdata`
-  (IANA timezone data in slim containers). **Dev:** `ruff`, `mypy` (strict), `httpx2` (FastAPI
-  test client).
+- **POC, kept lean:** config is plain `os.getenv` (compose loads `.env`), no lint/type tooling,
+  no unit tests for plumbing. Only extra dependency: `tzdata` (timezone data in slim containers).
 - **Docker is the only way the server runs.** Compose mounts `app/` with `--reload` for development.
 - **`models/` is a package** split by concern (enums, household, plan, conversation, state) and
   re-exported from `app.models`. All models reject unknown fields so LLM output drift fails loudly.

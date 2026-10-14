@@ -17,30 +17,17 @@ docker compose up --build
 - Health: <http://localhost:8000/health>
 - State: <http://localhost:8000/api/state>
 
-## Develop
-
-Requires [uv](https://docs.astral.sh/uv/).
-
-```bash
-uv sync
-uv run pytest               # tests
-uv run ruff check .         # lint
-uv run ruff format .        # format
-uv run mypy app tests       # strict type-check
-```
-
 ## Layout
 
 ```
 app/
-  config.py      typed settings (pydantic-settings)
+  config.py      env vars via os.getenv
   models/        every boundary type: enums, household, plan, conversation, state
   store/         SQLite schema + one repository module per aggregate
-  services/      read models and use-cases built on the store
-  api/           FastAPI routes and dependencies
-  events.py      append-only JSONL event log (secrets redacted)
+  services/      use-cases built on the store
+  main.py        FastAPI routes
+  events.py      append-only JSONL event log
   clock.py       per-household simulated clock
-tests/
 ```
 
 ## Real vs simulated
