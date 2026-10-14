@@ -23,10 +23,12 @@ def _to_model(row: sqlite3.Row) -> Constraint:
 def _find_active_same_family(
     conn: sqlite3.Connection, household_id: int, constraint: Constraint
 ) -> int | None:
-    """An earlier active rule about the same (member, kind, value) is replaced by the new one."""
+    """An earlier active rule about the same (member, kind, value) is replaced by the new one.
+    A real answer also replaces an earlier "none" placeholder of the same kind."""
     row = conn.execute(
         "SELECT id FROM constraint_ WHERE household_id = ? AND member_id IS ? AND kind = ? "
-        "AND value = ? COLLATE NOCASE AND superseded_by IS NULL ORDER BY id DESC LIMIT 1",
+        "AND (value = ? COLLATE NOCASE OR value = 'none') AND superseded_by IS NULL "
+        "ORDER BY id DESC LIMIT 1",
         (household_id, constraint.member_id, constraint.kind.value, constraint.value),
     ).fetchone()
     return int(row["id"]) if row else None

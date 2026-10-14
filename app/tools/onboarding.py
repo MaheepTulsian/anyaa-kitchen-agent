@@ -43,6 +43,11 @@ def _changed(ctx: ToolContext) -> None:
     _read_back_current.discard(ctx.household_id)
 
 
+def _open(ctx: ToolContext) -> list[str]:
+    """Next required topics, returned with every save so the model never loses track."""
+    return onboarding_gaps(ctx.conn, ctx.household_id).required[:3]
+
+
 def _member_id(ctx: ToolContext, name: str) -> int:
     member = members.get_member_by_name(ctx.conn, ctx.household_id, name)
     if member is None or member.id is None:
@@ -57,7 +62,10 @@ class UpsertMemberInput(Model):
     name: str = Field(description='What the family calls them: "Papa", "Dadi", "Riya".')
     relation: str | None = Field(None, description="e.g. father, grandmother, daughter, flatmate")
     age_group: AgeGroup
-    diet: Diet
+    diet: Diet = Field(
+        description="nonveg: eats chicken, fish or meat (eggs too). eggetarian: eggs but NO meat. "
+        "veg: no meat, no eggs. jain: veg without onion, garlic, root vegetables. vegan: no dairy."
+    )
     spice_level: int | None = Field(None, ge=0, le=4, description="0 none .. 4 very spicy")
 
 
@@ -69,8 +77,10 @@ class SetConstraintInput(Model):
     member: str | None = Field(None, description="Member name, or null for a whole-household rule.")
     kind: ConstraintKind
     value: str = Field(
-        description='What the rule is about, e.g. "peanut", "sabudana", "diabetic_friendly", '
-        '"veg", "no_onion_garlic", "ekadashi". Use "none" with kind=allergen for no allergies.'
+        description='What the rule is about, e.g. allergen "peanut"/"dairy"/"taro"; health_signal '
+        '"high_protein"/"low_salt"/"diabetic_friendly"/"soft_food"; avoid_ingredient "karela"; '
+        'diet_day "veg" or "no_onion_garlic"; fasting "ekadashi". Use "none" to record that you '
+        "asked and there is nothing (allergen, health_signal, avoid_ingredient, fasting)."
     )
     strength: Strength | None = Field(None, description="Omit to use the default for the kind.")
     scope: str | None = Field(
@@ -94,6 +104,14 @@ class SetCookProfileInput(Model):
     days_off: list[Weekday] = []
     known_dishes: list[str] = []
     notes: str | None = None
+
+
+class SetTastesInput(Model):
+    cuisines: list[str] = Field(
+        min_length=1,
+        description='What the family loves, e.g. "north indian", "south indian", "bengali", '
+        '"chinese", "light home food".',
+    )
 
 
 class SetMealsInput(Model):
@@ -126,7 +144,7 @@ def upsert_member(ctx: ToolContext, args: UpsertMemberInput) -> dict:
         Member(name=args.name, relation=args.relation, age_group=args.age_group, diet=args.diet, spice_level=spice),
     )
     _changed(ctx)
-    return {"member": member.name, "updated": existing is not None}
+    return {"member": member.name, "updated": existing is not None, "still_open": _open(ctx)}
 
 
 def remove_member(ctx: ToolContext, args: RemoveMemberInput) -> dict:
@@ -157,7 +175,11 @@ def set_constraint(ctx: ToolContext, args: SetConstraintInput) -> dict:
         ),
     )
     _changed(ctx)
-    return {"saved": f"{args.member or 'household'}: {args.kind.value} {args.value}", "replaced_previous": result.superseded_id is not None}
+    return {
+        "saved": f"{args.member or 'household'}: {args.kind.value} {args.value}",
+        "replaced_previous": result.superseded_id is not None,
+        "still_open": _open(ctx),
+    }
 
 
 def set_cook_profile(ctx: ToolContext, args: SetCookProfileInput) -> dict:
@@ -181,6 +203,12 @@ def set_household_meals(ctx: ToolContext, args: SetMealsInput) -> dict:
     households.set_meals(ctx.conn, ctx.household_id, args.meals)
     _changed(ctx)
     return {"meals": [m.value for m in args.meals]}
+
+
+def set_household_tastes(ctx: ToolContext, args: SetTastesInput) -> dict:
+    households.set_cuisine_prefs(ctx.conn, ctx.household_id, [c.strip().lower() for c in args.cuisines])
+    _changed(ctx)
+    return {"cuisines": args.cuisines}
 
 
 def set_pantry_item(ctx: ToolContext, args: SetPantryItemInput) -> dict:
@@ -233,6 +261,7 @@ ONBOARDING_TOOLS = [
     Tool("remove_member", "Remove someone who no longer eats at home.", RemoveMemberInput, remove_member),
     Tool("set_constraint", "Store an allergy, diet day, fast, health signal, like/dislike or household rule. A new rule replaces an older one about the same thing.", SetConstraintInput, set_constraint),
     Tool("set_cook_profile", "Store the cook's name, visits, days off and dishes they know, or that the family cooks.", SetCookProfileInput, set_cook_profile),
+    Tool("set_household_tastes", "Cuisines and food styles the family loves.", SetTastesInput, set_household_tastes),
     Tool("set_household_meals", "Which meals the household wants planned.", SetMealsInput, set_household_meals),
     Tool("set_pantry_item", "Record a staple already at home.", SetPantryItemInput, set_pantry_item),
     Tool("get_onboarding_gaps", "What is still missing (required) or nice to know (optional).", NoInput, get_onboarding_gaps),
