@@ -1,0 +1,45 @@
+"""Pydantic models shared across the app: one import point for every boundary type."""
+
+from app.models.base import ItemId, Model, NonEmptyStr
+from app.models.conversation import Event, Message
+from app.models.enums import (
+    AgeGroup,
+    Agent,
+    Channel,
+    ConstraintKind,
+    Diet,
+    EventType,
+    Language,
+    Meal,
+    Phase,
+    PlanStatus,
+    PrepOwner,
+    Role,
+    Severity,
+    Strength,
+    Unit,
+    VariationChange,
+    Weekday,
+)
+from app.models.household import (
+    Attendance,
+    Constraint,
+    CookProfile,
+    CookVisit,
+    Household,
+    Member,
+    PantryItem,
+)
+from app.models.plan import (
+    GroceryItem,
+    Plan,
+    PlanProposal,
+    PrepTask,
+    Servings,
+    SlotPlan,
+    StoredSlot,
+    Variation,
+    Violation,
+    slot_key,
+)
+from app.models.state import StateSnapshot
