@@ -33,7 +33,8 @@ def health() -> dict:
     return {
         "status": "ok",
         "instamart_mode": config.INSTAMART_MODE,
-        "llm_configured": bool(config.ANTHROPIC_API_KEY),
+        "llm_backend": config.LLM_BACKEND,
+        "llm_configured": config.LLM_BACKEND == "agent_sdk" or bool(config.ANTHROPIC_API_KEY),
         "speech_configured": bool(config.AZURE_SPEECH_KEY),
     }
 
