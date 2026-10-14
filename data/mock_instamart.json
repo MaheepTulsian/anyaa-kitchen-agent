@@ -1,0 +1,780 @@
+[
+ {
+  "id": "im_rice_sona",
+  "name": "Sona Masoori Rice",
+  "brand": "India Gate",
+  "pack": "5 kg",
+  "price": 399,
+  "in_stock": true,
+  "keywords": [
+   "rice",
+   "chawal",
+   "sona masoori"
+  ]
+ },
+ {
+  "id": "im_rice_basmati",
+  "name": "Basmati Rice",
+  "brand": "Daawat",
+  "pack": "1 kg",
+  "price": 165,
+  "in_stock": true,
+  "keywords": [
+   "rice",
+   "basmati",
+   "chawal"
+  ]
+ },
+ {
+  "id": "im_rice_brown",
+  "name": "Brown Rice",
+  "brand": "24 Mantra Organic",
+  "pack": "1 kg",
+  "price": 149,
+  "in_stock": true,
+  "keywords": [
+   "brown rice",
+   "rice_brown"
+  ]
+ },
+ {
+  "id": "im_atta",
+  "name": "Whole Wheat Atta",
+  "brand": "Aashirvaad",
+  "pack": "5 kg",
+  "price": 289,
+  "in_stock": true,
+  "keywords": [
+   "atta",
+   "wheat flour",
+   "roti"
+  ]
+ },
+ {
+  "id": "im_ragi",
+  "name": "Ragi Flour",
+  "brand": "Pro Nature",
+  "pack": "500 g",
+  "price": 79,
+  "in_stock": true,
+  "keywords": [
+   "ragi",
+   "finger millet"
+  ]
+ },
+ {
+  "id": "im_besan",
+  "name": "Besan",
+  "brand": "Tata Sampann",
+  "pack": "500 g",
+  "price": 69,
+  "in_stock": true,
+  "keywords": [
+   "besan",
+   "gram flour"
+  ]
+ },
+ {
+  "id": "im_suji",
+  "name": "Bombay Rava / Suji",
+  "brand": "24 Mantra",
+  "pack": "500 g",
+  "price": 45,
+  "in_stock": true,
+  "keywords": [
+   "suji",
+   "rava",
+   "semolina"
+  ]
+ },
+ {
+  "id": "im_poha",
+  "name": "Poha (Thick)",
+  "brand": "Tata Sampann",
+  "pack": "500 g",
+  "price": 52,
+  "in_stock": true,
+  "keywords": [
+   "poha",
+   "flattened rice"
+  ]
+ },
+ {
+  "id": "im_sabudana",
+  "name": "Sabudana",
+  "brand": "Rajdhani",
+  "pack": "500 g",
+  "price": 75,
+  "in_stock": true,
+  "keywords": [
+   "sabudana",
+   "sago"
+  ]
+ },
+ {
+  "id": "im_oats",
+  "name": "Rolled Oats",
+  "brand": "Saffola",
+  "pack": "1 kg",
+  "price": 199,
+  "in_stock": true,
+  "keywords": [
+   "oats"
+  ]
+ },
+ {
+  "id": "im_toor",
+  "name": "Toor Dal",
+  "brand": "Tata Sampann",
+  "pack": "1 kg",
+  "price": 189,
+  "in_stock": true,
+  "keywords": [
+   "toor dal",
+   "arhar",
+   "dal_toor"
+  ]
+ },
+ {
+  "id": "im_moong",
+  "name": "Moong Dal (Yellow)",
+  "brand": "Tata Sampann",
+  "pack": "500 g",
+  "price": 89,
+  "in_stock": true,
+  "keywords": [
+   "moong dal",
+   "dal_moong"
+  ]
+ },
+ {
+  "id": "im_chana_dal",
+  "name": "Chana Dal",
+  "brand": "Tata Sampann",
+  "pack": "500 g",
+  "price": 64,
+  "in_stock": true,
+  "keywords": [
+   "chana dal",
+   "dal_chana"
+  ]
+ },
+ {
+  "id": "im_masoor",
+  "name": "Masoor Dal",
+  "brand": "Tata Sampann",
+  "pack": "500 g",
+  "price": 72,
+  "in_stock": true,
+  "keywords": [
+   "masoor dal",
+   "dal_masoor"
+  ]
+ },
+ {
+  "id": "im_urad",
+  "name": "Urad Dal (Split)",
+  "brand": "Tata Sampann",
+  "pack": "500 g",
+  "price": 85,
+  "in_stock": true,
+  "keywords": [
+   "urad dal",
+   "dal_urad"
+  ]
+ },
+ {
+  "id": "im_rajma",
+  "name": "Rajma (Red Kidney Beans)",
+  "brand": "24 Mantra",
+  "pack": "500 g",
+  "price": 99,
+  "in_stock": true,
+  "keywords": [
+   "rajma",
+   "kidney beans"
+  ]
+ },
+ {
+  "id": "im_chole",
+  "name": "Kabuli Chana",
+  "brand": "Tata Sampann",
+  "pack": "1 kg",
+  "price": 159,
+  "in_stock": true,
+  "keywords": [
+   "chole",
+   "kabuli chana",
+   "chickpeas"
+  ]
+ },
+ {
+  "id": "im_sugar",
+  "name": "Sugar",
+  "brand": "Madhur",
+  "pack": "1 kg",
+  "price": 52,
+  "in_stock": true,
+  "keywords": [
+   "sugar",
+   "cheeni"
+  ]
+ },
+ {
+  "id": "im_jaggery",
+  "name": "Jaggery",
+  "brand": "24 Mantra",
+  "pack": "500 g",
+  "price": 65,
+  "in_stock": true,
+  "keywords": [
+   "jaggery",
+   "gur"
+  ]
+ },
+ {
+  "id": "im_salt",
+  "name": "Iodised Salt",
+  "brand": "Tata",
+  "pack": "1 kg",
+  "price": 28,
+  "in_stock": true,
+  "keywords": [
+   "salt",
+   "namak"
+  ]
+ },
+ {
+  "id": "im_oil_sunflower",
+  "name": "Sunflower Oil",
+  "brand": "Fortune",
+  "pack": "1 L",
+  "price": 155,
+  "in_stock": true,
+  "keywords": [
+   "oil",
+   "sunflower oil",
+   "oil_sunflower"
+  ]
+ },
+ {
+  "id": "im_oil_groundnut",
+  "name": "Groundnut Oil",
+  "brand": "Fortune",
+  "pack": "1 L",
+  "price": 210,
+  "in_stock": true,
+  "keywords": [
+   "groundnut oil",
+   "peanut oil",
+   "oil_groundnut"
+  ]
+ },
+ {
+  "id": "im_oil_mustard",
+  "name": "Kachi Ghani Mustard Oil",
+  "brand": "Fortune",
+  "pack": "1 L",
+  "price": 175,
+  "in_stock": true,
+  "keywords": [
+   "mustard oil",
+   "oil_mustard"
+  ]
+ },
+ {
+  "id": "im_oil_coconut",
+  "name": "Coconut Oil",
+  "brand": "Parachute",
+  "pack": "500 ml",
+  "price": 145,
+  "in_stock": true,
+  "keywords": [
+   "coconut oil",
+   "oil_coconut"
+  ]
+ },
+ {
+  "id": "im_ghee",
+  "name": "Cow Ghee",
+  "brand": "Amul",
+  "pack": "500 ml",
+  "price": 315,
+  "in_stock": true,
+  "keywords": [
+   "ghee"
+  ]
+ },
+ {
+  "id": "im_butter",
+  "name": "Butter",
+  "brand": "Amul",
+  "pack": "100 g",
+  "price": 58,
+  "in_stock": true,
+  "keywords": [
+   "butter"
+  ]
+ },
+ {
+  "id": "im_milk",
+  "name": "Toned Milk",
+  "brand": "Nandini",
+  "pack": "1 L",
+  "price": 54,
+  "in_stock": true,
+  "keywords": [
+   "milk",
+   "doodh"
+  ]
+ },
+ {
+  "id": "im_curd",
+  "name": "Curd",
+  "brand": "Nandini",
+  "pack": "500 g",
+  "price": 30,
+  "in_stock": true,
+  "keywords": [
+   "curd",
+   "dahi",
+   "yogurt"
+  ]
+ },
+ {
+  "id": "im_paneer",
+  "name": "Paneer",
+  "brand": "Amul",
+  "pack": "200 g",
+  "price": 95,
+  "in_stock": true,
+  "keywords": [
+   "paneer",
+   "cottage cheese"
+  ]
+ },
+ {
+  "id": "im_cheese",
+  "name": "Cheese Slices",
+  "brand": "Amul",
+  "pack": "200 g",
+  "price": 135,
+  "in_stock": true,
+  "keywords": [
+   "cheese"
+  ]
+ },
+ {
+  "id": "im_eggs",
+  "name": "Farm Eggs",
+  "brand": "Eggoz",
+  "pack": "6 pcs",
+  "price": 72,
+  "in_stock": true,
+  "keywords": [
+   "egg",
+   "eggs",
+   "anda"
+  ]
+ },
+ {
+  "id": "im_chicken",
+  "name": "Chicken Curry Cut",
+  "brand": "Licious",
+  "pack": "500 g",
+  "price": 229,
+  "in_stock": true,
+  "keywords": [
+   "chicken"
+  ]
+ },
+ {
+  "id": "im_fish",
+  "name": "Rohu Fish Curry Cut",
+  "brand": "Licious",
+  "pack": "500 g",
+  "price": 269,
+  "in_stock": false,
+  "keywords": [
+   "fish",
+   "rohu"
+  ]
+ },
+ {
+  "id": "im_bread",
+  "name": "Whole Wheat Bread",
+  "brand": "Modern",
+  "pack": "400 g",
+  "price": 50,
+  "in_stock": true,
+  "keywords": [
+   "bread"
+  ]
+ },
+ {
+  "id": "im_idli_batter",
+  "name": "Idli & Dosa Batter",
+  "brand": "iD",
+  "pack": "1 kg",
+  "price": 95,
+  "in_stock": true,
+  "keywords": [
+   "idli batter",
+   "dosa batter",
+   "idli",
+   "dosa"
+  ]
+ },
+ {
+  "id": "im_onion",
+  "name": "Onion",
+  "brand": "Fresho",
+  "pack": "1 kg",
+  "price": 42,
+  "in_stock": true,
+  "keywords": [
+   "onion",
+   "pyaz"
+  ]
+ },
+ {
+  "id": "im_tomato",
+  "name": "Tomato",
+  "brand": "Fresho",
+  "pack": "1 kg",
+  "price": 38,
+  "in_stock": true,
+  "keywords": [
+   "tomato",
+   "tamatar"
+  ]
+ },
+ {
+  "id": "im_potato",
+  "name": "Potato",
+  "brand": "Fresho",
+  "pack": "1 kg",
+  "price": 36,
+  "in_stock": true,
+  "keywords": [
+   "potato",
+   "aloo"
+  ]
+ },
+ {
+  "id": "im_ginger",
+  "name": "Ginger",
+  "brand": "Fresho",
+  "pack": "100 g",
+  "price": 18,
+  "in_stock": true,
+  "keywords": [
+   "ginger",
+   "adrak"
+  ]
+ },
+ {
+  "id": "im_garlic",
+  "name": "Garlic",
+  "brand": "Fresho",
+  "pack": "100 g",
+  "price": 25,
+  "in_stock": true,
+  "keywords": [
+   "garlic",
+   "lehsun"
+  ]
+ },
+ {
+  "id": "im_gg_paste",
+  "name": "Ginger Garlic Paste",
+  "brand": "Smith & Jones",
+  "pack": "200 g",
+  "price": 55,
+  "in_stock": true,
+  "keywords": [
+   "ginger garlic paste",
+   "ginger_garlic_paste"
+  ]
+ },
+ {
+  "id": "im_green_chilli",
+  "name": "Green Chilli",
+  "brand": "Fresho",
+  "pack": "100 g",
+  "price": 12,
+  "in_stock": true,
+  "keywords": [
+   "green chilli",
+   "hari mirch",
+   "chilli_green"
+  ]
+ },
+ {
+  "id": "im_coriander",
+  "name": "Coriander Leaves",
+  "brand": "Fresho",
+  "pack": "100 g",
+  "price": 15,
+  "in_stock": true,
+  "keywords": [
+   "coriander",
+   "dhania"
+  ]
+ },
+ {
+  "id": "im_curry_leaves",
+  "name": "Curry Leaves",
+  "brand": "Fresho",
+  "pack": "50 g",
+  "price": 10,
+  "in_stock": true,
+  "keywords": [
+   "curry leaves",
+   "kadi patta"
+  ]
+ },
+ {
+  "id": "im_lemon",
+  "name": "Lemon",
+  "brand": "Fresho",
+  "pack": "4 pcs",
+  "price": 24,
+  "in_stock": true,
+  "keywords": [
+   "lemon",
+   "nimbu"
+  ]
+ },
+ {
+  "id": "im_spinach",
+  "name": "Spinach",
+  "brand": "Fresho",
+  "pack": "250 g",
+  "price": 25,
+  "in_stock": true,
+  "keywords": [
+   "spinach",
+   "palak"
+  ]
+ },
+ {
+  "id": "im_bhindi",
+  "name": "Ladies Finger (Bhindi)",
+  "brand": "Fresho",
+  "pack": "500 g",
+  "price": 40,
+  "in_stock": true,
+  "keywords": [
+   "bhindi",
+   "okra",
+   "ladies finger"
+  ]
+ },
+ {
+  "id": "im_karela",
+  "name": "Bitter Gourd (Karela)",
+  "brand": "Fresho",
+  "pack": "500 g",
+  "price": 45,
+  "in_stock": true,
+  "keywords": [
+   "karela",
+   "bitter gourd"
+  ]
+ },
+ {
+  "id": "im_cauliflower",
+  "name": "Cauliflower",
+  "brand": "Fresho",
+  "pack": "1 pc",
+  "price": 40,
+  "in_stock": true,
+  "keywords": [
+   "cauliflower",
+   "gobi"
+  ]
+ },
+ {
+  "id": "im_capsicum",
+  "name": "Green Capsicum",
+  "brand": "Fresho",
+  "pack": "500 g",
+  "price": 55,
+  "in_stock": true,
+  "keywords": [
+   "capsicum",
+   "shimla mirch"
+  ]
+ },
+ {
+  "id": "im_carrot",
+  "name": "Carrot",
+  "brand": "Fresho",
+  "pack": "500 g",
+  "price": 35,
+  "in_stock": true,
+  "keywords": [
+   "carrot",
+   "gajar"
+  ]
+ },
+ {
+  "id": "im_peas",
+  "name": "Frozen Green Peas",
+  "brand": "Safal",
+  "pack": "500 g",
+  "price": 85,
+  "in_stock": true,
+  "keywords": [
+   "peas",
+   "matar"
+  ]
+ },
+ {
+  "id": "im_coconut",
+  "name": "Coconut",
+  "brand": "Fresho",
+  "pack": "1 pc",
+  "price": 40,
+  "in_stock": true,
+  "keywords": [
+   "coconut",
+   "nariyal"
+  ]
+ },
+ {
+  "id": "im_coconut_milk",
+  "name": "Coconut Milk",
+  "brand": "Dabur Hommade",
+  "pack": "200 ml",
+  "price": 65,
+  "in_stock": true,
+  "keywords": [
+   "coconut milk",
+   "nariyal doodh"
+  ]
+ },
+ {
+  "id": "im_turmeric",
+  "name": "Turmeric Powder",
+  "brand": "Everest",
+  "pack": "100 g",
+  "price": 35,
+  "in_stock": true,
+  "keywords": [
+   "turmeric",
+   "haldi"
+  ]
+ },
+ {
+  "id": "im_chilli_powder",
+  "name": "Kashmiri Red Chilli Powder",
+  "brand": "Everest",
+  "pack": "100 g",
+  "price": 62,
+  "in_stock": true,
+  "keywords": [
+   "red chilli powder",
+   "lal mirch",
+   "chilli_powder"
+  ]
+ },
+ {
+  "id": "im_coriander_powder",
+  "name": "Coriander Powder",
+  "brand": "Everest",
+  "pack": "100 g",
+  "price": 32,
+  "in_stock": true,
+  "keywords": [
+   "coriander powder",
+   "dhania powder"
+  ]
+ },
+ {
+  "id": "im_garam_masala",
+  "name": "Garam Masala",
+  "brand": "Everest",
+  "pack": "100 g",
+  "price": 78,
+  "in_stock": true,
+  "keywords": [
+   "garam masala"
+  ]
+ },
+ {
+  "id": "im_jeera",
+  "name": "Cumin Seeds (Jeera)",
+  "brand": "Tata Sampann",
+  "pack": "100 g",
+  "price": 55,
+  "in_stock": true,
+  "keywords": [
+   "cumin",
+   "jeera"
+  ]
+ },
+ {
+  "id": "im_mustard_seeds",
+  "name": "Mustard Seeds (Rai)",
+  "brand": "Tata Sampann",
+  "pack": "100 g",
+  "price": 25,
+  "in_stock": true,
+  "keywords": [
+   "mustard seeds",
+   "rai"
+  ]
+ },
+ {
+  "id": "im_hing",
+  "name": "Asafoetida (Hing)",
+  "brand": "Everest",
+  "pack": "50 g",
+  "price": 85,
+  "in_stock": true,
+  "keywords": [
+   "hing",
+   "asafoetida"
+  ]
+ },
+ {
+  "id": "im_tamarind",
+  "name": "Tamarind",
+  "brand": "Tata Sampann",
+  "pack": "200 g",
+  "price": 60,
+  "in_stock": true,
+  "keywords": [
+   "tamarind",
+   "imli"
+  ]
+ },
+ {
+  "id": "im_peanuts",
+  "name": "Raw Peanuts",
+  "brand": "Tata Sampann",
+  "pack": "500 g",
+  "price": 95,
+  "in_stock": true,
+  "keywords": [
+   "peanut",
+   "peanuts",
+   "mungfali",
+   "groundnut"
+  ]
+ },
+ {
+  "id": "im_cashew",
+  "name": "Cashews",
+  "brand": "Happilo",
+  "pack": "200 g",
+  "price": 230,
+  "in_stock": true,
+  "keywords": [
+   "cashew",
+   "kaju"
+  ]
+ }
+]

@@ -17,6 +17,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY app ./app
 COPY web ./web
+COPY data/mock_instamart.json ./data/mock_instamart.json
 
 RUN useradd --create-home --uid 1000 anyaa \
     && mkdir -p /app/data /app/logs /app/web/audio \

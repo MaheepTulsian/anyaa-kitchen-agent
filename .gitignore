@@ -5,6 +5,7 @@ CLAUDE.md
 
 # Secrets
 .env
+data/swiggy_token.json
 
 # Python
 __pycache__/
