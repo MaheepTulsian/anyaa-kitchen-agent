@@ -42,8 +42,13 @@ Decisions made while building, where the spec was silent or we deviated.
 - **Our own OAuth flow** (`swiggy_oauth.py`) instead of the MCP SDK's auth helper, because the
   login has to round-trip through the web app's callback route. Token is kept in
   `data/swiggy_token.json` (gitignored) and refreshed automatically.
-- **Order safety:** the Swiggy MCP can place real cash-on-delivery orders that cannot be cancelled.
-  Any tool whose name matches order/checkout/place/pay/confirm is refused in code.
+- **Order safety: allowlist, not blocklist.** The Swiggy MCP exposes 16 tools, including
+  `checkout` (real, non-cancellable COD orders), payments and address create/delete. Only
+  `get_addresses`, `search_products`, `your_go_to_items`, `get_cart` and `update_cart` can be called.
+- **`update_cart` replaces the whole Instamart cart**, so the UI warns before building. Quantities
+  are capped at Swiggy's per-order `maxQuantity`. Results are read from `structured_content`.
+- **Delivery address** is chosen once in the UI and kept in `data/swiggy_address.json` (gitignored);
+  search and cart need it.
 - **Mock is the default** (64 SKUs, ₹ prices, one out-of-stock item). Search/cart switch to the real
   MCP only when `INSTAMART_MODE=mcp` and a Swiggy token exists.
 - **MCP SDK is v2.3** (`streamable_http_client` + `httpx2`), newer than the spec assumed.

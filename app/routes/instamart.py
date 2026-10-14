@@ -17,6 +17,7 @@ class InstamartStatus(Model):
     mode: str  # configured mode
     active: str  # what search/cart will actually use right now
     logged_in: bool
+    address_id: str | None = None
 
 
 class ToolCall(Model):
@@ -28,7 +29,12 @@ class ToolCall(Model):
 def status() -> InstamartStatus:
     logged_in = swiggy_oauth.load_token() is not None
     active = "mcp" if config.INSTAMART_MODE == "mcp" and logged_in else "mock"
-    return InstamartStatus(mode=config.INSTAMART_MODE, active=active, logged_in=logged_in)
+    return InstamartStatus(
+        mode=config.INSTAMART_MODE,
+        active=active,
+        logged_in=logged_in,
+        address_id=instamart_mcp.selected_address(),
+    )
 
 
 @router.get("/login")
@@ -67,20 +73,40 @@ async def tools() -> list[instamart_mcp.ToolInfo]:
 
 @router.post("/tools/call")
 async def call_tool(body: ToolCall) -> Any:
-    """Debug: call one discovered tool directly. Order/checkout/payment tools are refused."""
+    """Debug: call one allowlisted tool directly (no orders, payments or address edits)."""
     try:
         return await instamart_mcp.call_tool(body.name, body.arguments)
     except instamart_mcp.BlockedToolError as error:
         raise HTTPException(403, str(error)) from error
-    except swiggy_oauth.OAuthError as error:
-        raise HTTPException(401, str(error)) from error
+    except (swiggy_oauth.OAuthError, instamart_mcp.InstamartError) as error:
+        raise HTTPException(400, str(error)) from error
+
+
+@router.get("/addresses")
+async def addresses() -> list[instamart_mcp.Address]:
+    try:
+        return await instamart_mcp.list_addresses()
+    except (swiggy_oauth.OAuthError, instamart_mcp.InstamartError) as error:
+        raise HTTPException(400, str(error)) from error
+
+
+@router.post("/address")
+def choose_address(address: instamart_mcp.Address) -> InstamartStatus:
+    instamart_mcp.select_address(address)
+    return status()
 
 
 @router.get("/search")
 async def search(q: str) -> list[Product]:
-    return await get_client().search(q)
+    try:
+        return await get_client().search(q)
+    except (swiggy_oauth.OAuthError, instamart_mcp.InstamartError) as error:
+        raise HTTPException(400, str(error)) from error
 
 
 @router.post("/cart")
 async def build_cart(lines: list[CartLine]) -> CartResult:
-    return await get_client().build_cart(lines)
+    try:
+        return await get_client().build_cart(lines)
+    except (swiggy_oauth.OAuthError, instamart_mcp.InstamartError) as error:
+        raise HTTPException(400, str(error)) from error

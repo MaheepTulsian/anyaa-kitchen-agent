@@ -14,6 +14,7 @@
     section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
     h2 { margin: 0 0 8px; font-size: 16px; }
     .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
     input { flex: 1; min-width: 180px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
     button, a.btn { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font: inherit; cursor: pointer; color: inherit; text-decoration: none; }
     .primary { background: var(--accent); color: #fff !important; border-color: var(--accent); }
@@ -40,6 +41,10 @@
       <button id="logout">Log out</button>
       <button id="loadTools">List Swiggy tools</button>
     </div>
+    <div class="row" id="addressRow" style="margin-top:10px" hidden>
+      <label for="address">Deliver to</label>
+      <select id="address"></select>
+    </div>
     <p class="muted">Search and cart use the real Swiggy MCP only when INSTAMART_MODE=mcp and you are logged in; otherwise the mock.</p>
     <div id="tools"></div>
   </section>
@@ -56,6 +61,7 @@
   <section>
     <h2>Cart</h2>
     <table id="cart"></table>
+    <p id="replaceWarning" class="muted blocked" hidden>Building replaces everything currently in your Instamart cart.</p>
     <div class="row" style="margin-top:10px">
       <button id="buildCart" class="primary">Build cart</button>
       <button id="clearCart">Clear</button>
@@ -73,6 +79,21 @@
     const s = await (await fetch("/api/instamart/status")).json();
     $("mode").textContent = `Using: ${s.active}${s.logged_in ? " · logged in" : ""}`;
     $("mode").className = `pill ${s.active === "mcp" ? "live" : ""}`;
+    $("replaceWarning").hidden = s.active !== "mcp";
+    $("addressRow").hidden = s.active !== "mcp";
+    if (s.active === "mcp") loadAddresses(s.address_id);
+  }
+
+  async function loadAddresses(selectedId) {
+    const res = await fetch("/api/instamart/addresses");
+    if (!res.ok) return;
+    const addresses = await res.json();
+    $("address").innerHTML = `<option value="">Choose an address…</option>` +
+      addresses.map((a) => `<option value="${a.id}" ${a.id === selectedId ? "selected" : ""}>${a.tag}</option>`).join("");
+    $("address").onchange = async () => {
+      const chosen = addresses.find((a) => a.id === $("address").value);
+      if (chosen) await fetch("/api/instamart/address", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(chosen) });
+    };
   }
 
   $("logout").onclick = async () => { await fetch("/api/instamart/logout", { method: "POST" }); refreshStatus(); };
@@ -88,7 +109,9 @@
 
   $("searchForm").onsubmit = async (e) => {
     e.preventDefault();
-    const items = await (await fetch(`/api/instamart/search?q=${encodeURIComponent($("q").value)}`)).json();
+    const res = await fetch(`/api/instamart/search?q=${encodeURIComponent($("q").value)}`);
+    const items = await res.json();
+    if (!res.ok) return ($("results").innerHTML = `<tr><td class="blocked">${items.detail}</td></tr>`);
     $("results").innerHTML = items.length
       ? `<tr><th>Product</th><th>Pack</th><th class="num">Price</th><th></th></tr>` + items.map((p) => `
         <tr><td>${p.name} <span class="muted">${p.brand ?? ""}</span></td><td>${p.pack}</td>
