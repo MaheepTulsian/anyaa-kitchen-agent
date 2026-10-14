@@ -66,7 +66,7 @@ def upsert_member(conn: sqlite3.Connection, household_id: int, member: Member) -
 
 
 def deactivate_member(conn: sqlite3.Connection, household_id: int, name: str) -> bool:
-    """Soft-remove a member so history and constraints stay traceable. False if not found."""
+    """Soft-remove a member so history and preferences stay traceable. False if not found."""
     cursor = conn.execute(
         "UPDATE member SET active = 0 WHERE household_id = ? AND name = ? COLLATE NOCASE",
         (household_id, name.strip()),

@@ -6,17 +6,7 @@ from typing import Self
 from pydantic import Field, model_validator
 
 from app.models.base import ItemId, Model, NonEmptyStr
-from app.models.enums import (
-    AgeGroup,
-    ConstraintKind,
-    Diet,
-    Language,
-    Meal,
-    Phase,
-    Strength,
-    Unit,
-    Weekday,
-)
+from app.models.enums import AgeGroup, Diet, Language, Meal, Phase, Unit, Weekday
 
 
 class Household(Model):
@@ -24,7 +14,6 @@ class Household(Model):
     name: str | None = None
     phase: Phase = Phase.ONBOARDING
     meals: list[Meal] = Field(default_factory=lambda: [Meal.LUNCH, Meal.DINNER])
-    cuisine_prefs: list[str] = Field(default_factory=list)
     meals_set: bool = False  # the user explicitly chose which meals to plan
     profile_confirmed: bool = False
     created_at: dt.datetime
@@ -40,31 +29,21 @@ class Member(Model):
     active: bool = True
 
 
-class Constraint(Model):
+class Preference(Model):
+    """Anything the household tells us about food, as a free-form note the LLM writes and reads."""
+
     id: int | None = None
-    member_id: int | None = None
-    """None means the rule applies to the whole household."""
-    kind: ConstraintKind
-    value: NonEmptyStr
-    strength: Strength
-    scope: str | None = None
-    """Allergen: `trace` | `ingredient`. Day rules: a weekday such as `tue`."""
-    condition: str | None = None
+    member: str | None = None
+    """Member name, or None for the whole household."""
+    category: NonEmptyStr
+    """Free text: allergy, intolerance, health, avoid, dislike, favourite, fasting, cuisine, ..."""
+    detail: NonEmptyStr
+    """The fact in plain words, e.g. "taro root, makes her itchy; traces are fine"."""
+    strict: bool = False
+    """True when it must never be broken: allergies, never-eat, religious or fasting rules."""
     quote: NonEmptyStr
-    """The user's exact words; shown in read-backs and used by evals."""
-    valid_from: dt.date | None = None
-    superseded_by: int | None = None
+    """The user's exact words."""
     created_at: dt.datetime | None = None
-
-    @model_validator(mode="after")
-    def _allergens_are_always_hard(self) -> Self:
-        if self.kind is ConstraintKind.ALLERGEN:
-            self.strength = Strength.HARD
-        return self
-
-    @property
-    def is_active(self) -> bool:
-        return self.superseded_by is None
 
 
 class CookVisit(Model):

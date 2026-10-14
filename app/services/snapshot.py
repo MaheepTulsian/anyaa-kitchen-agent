@@ -4,7 +4,7 @@ import sqlite3
 
 from app import clock, config
 from app.models import StateSnapshot
-from app.store import constraints, cook, households, members, pantry
+from app.store import cook, households, members, pantry, preferences
 
 
 def build_snapshot(
@@ -16,7 +16,7 @@ def build_snapshot(
         household=household,
         phase=household.phase,
         members=members.list_members(conn, household_id),
-        constraints=constraints.list_active_constraints(conn, household_id),
+        preferences=preferences.list_preferences(conn, household_id),
         cook=cook.get_cook_profile(conn, household_id),
         pantry=pantry.list_pantry(conn, household_id),
         plan=None,

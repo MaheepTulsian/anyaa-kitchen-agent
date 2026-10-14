@@ -43,22 +43,6 @@ class Diet(StrEnum):
     VEGAN = "vegan"
 
 
-class ConstraintKind(StrEnum):
-    ALLERGEN = "allergen"
-    DIET_DAY = "diet_day"
-    FASTING = "fasting"
-    AVOID_INGREDIENT = "avoid_ingredient"
-    HEALTH_SIGNAL = "health_signal"
-    FAVOURITE = "favourite"
-    DISLIKE_DISH = "dislike_dish"
-    HOUSEHOLD_RULE = "household_rule"
-
-
-class Strength(StrEnum):
-    HARD = "hard"
-    SOFT = "soft"
-
-
 class Language(StrEnum):
     HINDI = "hi"
     KANNADA = "kn"

@@ -123,21 +123,16 @@ async function refreshState() {
   $("instamartBadge").textContent = `Instamart: ${im.active}`;
   $("instamartBadge").className = `pill ${im.active === "mcp" ? "live" : ""}`;
 
-  const rulesFor = (id) => state.constraints.filter((c) => c.member_id === id);
-  const chip = (c) => {
-    if (c.kind === "allergen") {
-      return c.value === "none" ? `<span class="chip">no allergies</span>`
-        : `<span class="chip allergy" title="${esc(c.quote)}">allergy: ${esc(c.value)}${c.scope === "trace" ? " (even traces)" : ""}</span>`;
-    }
-    const label = `${c.kind.replace("_", " ")}: ${c.value.replaceAll("_", " ")}${c.scope ? ` (${c.scope})` : ""}`;
-    return `<span class="chip ${c.strength === "hard" ? "hard" : ""}" title="${esc(c.quote)}">${esc(label)}</span>`;
-  };
+  const prefsFor = (name) => state.preferences.filter((p) => (p.member ?? "").toLowerCase() === (name ?? "").toLowerCase());
+  const chip = (p) => p.detail.toLowerCase() === "none"
+    ? `<span class="chip" title="${esc(p.quote)}">${esc(p.category)}: none</span>`
+    : `<span class="chip ${p.strict ? "allergy" : ""}" title="${esc(p.quote)}">${esc(p.category)}: ${esc(p.detail)}</span>`;
 
   $("members").innerHTML = state.members.length
-    ? state.members.map((m) => `<div class="member"><b>${esc(m.name)}</b> <span class="muted">${esc(m.relation ?? "")} · ${m.age_group} · ${m.diet} · spice ${m.spice_level}</span><div>${rulesFor(m.id).map(chip).join("")}</div></div>`).join("")
+    ? state.members.map((m) => `<div class="member"><b>${esc(m.name)}</b> <span class="muted">${esc(m.relation ?? "")} · ${m.age_group} · ${m.diet} · spice ${m.spice_level}</span><div>${prefsFor(m.name).map(chip).join("")}</div></div>`).join("")
     : `<span class="muted">Nobody yet.</span>`;
-  const houseRules = rulesFor(null);
-  $("rules").innerHTML = houseRules.length ? `<div class="member"><b>Whole house</b><div>${houseRules.map(chip).join("")}</div></div>` : "";
+  const household = state.preferences.filter((p) => !p.member);
+  $("rules").innerHTML = household.length ? `<div class="member"><b>Whole house</b><div>${household.map(chip).join("")}</div></div>` : "";
 
   const cook = state.cook;
   $("cook").innerHTML = !cook ? `<span class="muted">Not set yet.</span>`

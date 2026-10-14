@@ -6,7 +6,6 @@ from app.models.enums import (
     AgeGroup,
     Agent,
     Channel,
-    ConstraintKind,
     Diet,
     EventType,
     Language,
@@ -16,14 +15,13 @@ from app.models.enums import (
     PrepOwner,
     Role,
     Severity,
-    Strength,
     Unit,
     VariationChange,
     Weekday,
 )
 from app.models.household import (
     Attendance,
-    Constraint,
+    Preference,
     CookProfile,
     CookVisit,
     Household,

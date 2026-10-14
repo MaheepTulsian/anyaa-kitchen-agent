@@ -14,7 +14,6 @@ def _to_model(row: sqlite3.Row) -> Household:
             "name": row["name"],
             "phase": row["phase"],
             "meals": json.loads(row["meals_json"]),
-            "cuisine_prefs": json.loads(row["cuisine_prefs_json"]),
             "meals_set": bool(row["meals_set"]),
             "profile_confirmed": bool(row["profile_confirmed"]),
             "created_at": row["created_at"],
@@ -55,13 +54,6 @@ def set_meals(conn: sqlite3.Connection, household_id: int, meals: list[Meal]) ->
     )
     conn.commit()
 
-
-def set_cuisine_prefs(conn: sqlite3.Connection, household_id: int, cuisines: list[str]) -> None:
-    conn.execute(
-        "UPDATE household SET cuisine_prefs_json = ? WHERE id = ?",
-        (json.dumps(cuisines), household_id),
-    )
-    conn.commit()
 
 
 def set_profile_confirmed(conn: sqlite3.Connection, household_id: int, confirmed: bool) -> None:

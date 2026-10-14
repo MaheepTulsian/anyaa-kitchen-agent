@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS household (
   name TEXT,
   phase TEXT NOT NULL DEFAULT 'ONBOARDING',
   meals_json TEXT NOT NULL DEFAULT '["lunch","dinner"]',
-  cuisine_prefs_json TEXT NOT NULL DEFAULT '[]',
   meals_set INTEGER NOT NULL DEFAULT 0,       -- user explicitly chose which meals to plan
   profile_confirmed INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL
@@ -23,18 +22,14 @@ CREATE TABLE IF NOT EXISTS member (
   UNIQUE (household_id, name)
 );
 
-CREATE TABLE IF NOT EXISTS constraint_ (
+CREATE TABLE IF NOT EXISTS preference (
   id INTEGER PRIMARY KEY,
   household_id INTEGER NOT NULL REFERENCES household(id) ON DELETE CASCADE,
-  member_id INTEGER REFERENCES member(id) ON DELETE CASCADE,
-  kind TEXT NOT NULL,
-  value TEXT NOT NULL,
-  strength TEXT NOT NULL,
-  scope TEXT,
-  condition TEXT,
-  quote TEXT NOT NULL,
-  valid_from TEXT,
-  superseded_by INTEGER REFERENCES constraint_(id),
+  member TEXT,                     -- member name; NULL = whole household
+  category TEXT NOT NULL,          -- free text: allergy, health, dislike, favourite, fasting, ...
+  detail TEXT NOT NULL,
+  strict INTEGER NOT NULL DEFAULT 0,
+  quote TEXT NOT NULL,             -- the user's exact words
   created_at TEXT NOT NULL
 );
 

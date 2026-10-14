@@ -5,8 +5,6 @@ from pydantic import Field
 from app.integrations import instamart_mcp, swiggy_oauth
 from app.models import (
     AgeGroup,
-    Constraint,
-    ConstraintKind,
     CookProfile,
     CookVisit,
     Diet,
@@ -15,24 +13,13 @@ from app.models import (
     Model,
     PantryItem,
     Phase,
-    Strength,
+    Preference,
     Unit,
     Weekday,
 )
 from app.services.profile import onboarding_gaps, render_profile
-from app.store import constraints, cook, households, members, pantry
+from app.store import cook, households, members, pantry, preferences
 from app.tools.base import Tool, ToolContext, ToolError
-
-DEFAULT_STRENGTH = {
-    ConstraintKind.ALLERGEN: Strength.HARD,
-    ConstraintKind.DIET_DAY: Strength.HARD,
-    ConstraintKind.FASTING: Strength.HARD,
-    ConstraintKind.HOUSEHOLD_RULE: Strength.HARD,
-    ConstraintKind.AVOID_INGREDIENT: Strength.SOFT,
-    ConstraintKind.HEALTH_SIGNAL: Strength.SOFT,
-    ConstraintKind.FAVOURITE: Strength.SOFT,
-    ConstraintKind.DISLIKE_DISH: Strength.SOFT,
-}
 
 # Households whose profile was read back with no changes since. Any write clears the flag,
 # so confirm_profile always follows a fresh read-back.
@@ -41,18 +28,6 @@ _read_back_current: set[int] = set()
 
 def _changed(ctx: ToolContext) -> None:
     _read_back_current.discard(ctx.household_id)
-
-
-def _open(ctx: ToolContext) -> list[str]:
-    """Next required topics, returned with every save so the model never loses track."""
-    return onboarding_gaps(ctx.conn, ctx.household_id).required[:3]
-
-
-def _member_id(ctx: ToolContext, name: str) -> int:
-    member = members.get_member_by_name(ctx.conn, ctx.household_id, name)
-    if member is None or member.id is None:
-        raise ToolError(f"no household member called '{name}'", "Call upsert_member for them first.")
-    return member.id
 
 
 # --- inputs -----------------------------------------------------------------------------------
@@ -73,21 +48,30 @@ class RemoveMemberInput(Model):
     name: str
 
 
-class SetConstraintInput(Model):
-    member: str | None = Field(None, description="Member name, or null for a whole-household rule.")
-    kind: ConstraintKind
-    value: str = Field(
-        description='What the rule is about, e.g. allergen "peanut"/"dairy"/"taro"; health_signal '
-        '"high_protein"/"low_salt"/"diabetic_friendly"/"soft_food"; avoid_ingredient "karela"; '
-        'diet_day "veg" or "no_onion_garlic"; fasting "ekadashi". Use "none" to record that you '
-        "asked and there is nothing (allergen, health_signal, avoid_ingredient, fasting)."
+class PreferenceInput(Model):
+    member: str | None = Field(None, description="Member name as stored, or null for the whole household.")
+    category: str = Field(
+        description="Short free-text label: allergy, intolerance, health, avoid, dislike, "
+        "favourite, fasting, religious, cuisine, spice, routine, other."
     )
-    strength: Strength | None = Field(None, description="Omit to use the default for the kind.")
-    scope: str | None = Field(
-        None, description='Allergen: "trace" or "ingredient". Day rules: weekday like "tue".'
+    detail: str = Field(
+        description='The fact in plain words with everything that matters, e.g. "peanuts, even '
+        'traces like groundnut oil or garnish", "high protein, goes to the gym", "no onion or '
+        'garlic on Thursdays, even with guests".'
     )
-    condition: str | None = Field(None, description='Exception in words, e.g. "unless guests".')
+    strict: bool = Field(
+        description="true if it must never be broken: allergies, intolerances, never-eat, "
+        "religious and fasting rules. false for likes, dislikes and gentle health preferences."
+    )
     quote: str = Field(description="The user's exact words this came from.")
+
+
+class AddPreferencesInput(Model):
+    items: list[PreferenceInput] = Field(min_length=1)
+
+
+class RemovePreferenceInput(Model):
+    id: int = Field(description="The #id shown in the profile.")
 
 
 class VisitInput(Model):
@@ -104,14 +88,6 @@ class SetCookProfileInput(Model):
     days_off: list[Weekday] = []
     known_dishes: list[str] = []
     notes: str | None = None
-
-
-class SetTastesInput(Model):
-    cuisines: list[str] = Field(
-        min_length=1,
-        description='What the family loves, e.g. "north indian", "south indian", "bengali", '
-        '"chinese", "light home food".',
-    )
 
 
 class SetMealsInput(Model):
@@ -144,7 +120,7 @@ def upsert_member(ctx: ToolContext, args: UpsertMemberInput) -> dict:
         Member(name=args.name, relation=args.relation, age_group=args.age_group, diet=args.diet, spice_level=spice),
     )
     _changed(ctx)
-    return {"member": member.name, "updated": existing is not None, "still_open": _open(ctx)}
+    return {"member": member.name, "updated": existing is not None}
 
 
 def remove_member(ctx: ToolContext, args: RemoveMemberInput) -> dict:
@@ -154,32 +130,28 @@ def remove_member(ctx: ToolContext, args: RemoveMemberInput) -> dict:
     return {"removed": args.name}
 
 
-def set_constraint(ctx: ToolContext, args: SetConstraintInput) -> dict:
-    member_id = _member_id(ctx, args.member) if args.member else None
-    if args.kind is ConstraintKind.ALLERGEN and args.value.lower() != "none" and args.scope not in ("trace", "ingredient"):
-        raise ToolError(
-            "allergen scope missing",
-            'Ask whether traces (oil, garnish) matter, then set scope "trace" or "ingredient".',
+def add_preferences(ctx: ToolContext, args: AddPreferencesInput) -> dict:
+    known = {m.name.lower(): m.name for m in members.list_members(ctx.conn, ctx.household_id)}
+    unknown = sorted({i.member for i in args.items if i.member and i.member.lower() not in known})
+    if unknown:
+        raise ToolError(f"not household members: {', '.join(unknown)}", "Call upsert_member for them first.")
+    saved = [
+        preferences.add_preference(
+            ctx.conn,
+            ctx.household_id,
+            Preference(**item.model_dump() | {"member": known[item.member.lower()] if item.member else None}),
         )
-    result = constraints.add_constraint(
-        ctx.conn,
-        ctx.household_id,
-        Constraint(
-            member_id=member_id,
-            kind=args.kind,
-            value=args.value.strip().lower(),
-            strength=args.strength or DEFAULT_STRENGTH[args.kind],
-            scope=args.scope,
-            condition=args.condition,
-            quote=args.quote,
-        ),
-    )
+        for item in args.items
+    ]
     _changed(ctx)
-    return {
-        "saved": f"{args.member or 'household'}: {args.kind.value} {args.value}",
-        "replaced_previous": result.superseded_id is not None,
-        "still_open": _open(ctx),
-    }
+    return {"saved": [f"#{p.id} {p.member or 'household'}: {p.category}" for p in saved]}
+
+
+def remove_preference(ctx: ToolContext, args: RemovePreferenceInput) -> dict:
+    if not preferences.remove_preference(ctx.conn, ctx.household_id, args.id):
+        raise ToolError(f"no preference #{args.id}", "Use an id from the current profile.")
+    _changed(ctx)
+    return {"removed": args.id}
 
 
 def set_cook_profile(ctx: ToolContext, args: SetCookProfileInput) -> dict:
@@ -203,12 +175,6 @@ def set_household_meals(ctx: ToolContext, args: SetMealsInput) -> dict:
     households.set_meals(ctx.conn, ctx.household_id, args.meals)
     _changed(ctx)
     return {"meals": [m.value for m in args.meals]}
-
-
-def set_household_tastes(ctx: ToolContext, args: SetTastesInput) -> dict:
-    households.set_cuisine_prefs(ctx.conn, ctx.household_id, [c.strip().lower() for c in args.cuisines])
-    _changed(ctx)
-    return {"cuisines": args.cuisines}
 
 
 def set_pantry_item(ctx: ToolContext, args: SetPantryItemInput) -> dict:
@@ -259,9 +225,9 @@ async def choose_instamart_address(ctx: ToolContext, args: ChooseAddressInput) -
 ONBOARDING_TOOLS = [
     Tool("upsert_member", "Add a household member or update one (matched by name).", UpsertMemberInput, upsert_member),
     Tool("remove_member", "Remove someone who no longer eats at home.", RemoveMemberInput, remove_member),
-    Tool("set_constraint", "Store an allergy, diet day, fast, health signal, like/dislike or household rule. A new rule replaces an older one about the same thing.", SetConstraintInput, set_constraint),
+    Tool("add_preferences", "Save one or more things the household told you: allergies, intolerances, health needs, never-eat, dislikes, favourites, fasting or religious rules, cuisines, routines.", AddPreferencesInput, add_preferences),
+    Tool("remove_preference", "Delete a saved preference by its #id (use for corrections, then add the new version).", RemovePreferenceInput, remove_preference),
     Tool("set_cook_profile", "Store the cook's name, visits, days off and dishes they know, or that the family cooks.", SetCookProfileInput, set_cook_profile),
-    Tool("set_household_tastes", "Cuisines and food styles the family loves.", SetTastesInput, set_household_tastes),
     Tool("set_household_meals", "Which meals the household wants planned.", SetMealsInput, set_household_meals),
     Tool("set_pantry_item", "Record a staple already at home.", SetPantryItemInput, set_pantry_item),
     Tool("get_onboarding_gaps", "What is still missing (required) or nice to know (optional).", NoInput, get_onboarding_gaps),
