@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Voice Lab</title>
+  <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@1.52.0/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle-min.js"></script>
+  <style>
+    :root { --bg: #faf7f2; --card: #fff; --ink: #2b2620; --muted: #7a6f63; --accent: #c2410c; --line: #e8e1d6; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 15px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+    main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    .sub { color: var(--muted); margin: 0 0 20px; }
+    section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    h2 { margin: 0 0 4px; font-size: 16px; }
+    .tag { font-size: 12px; color: var(--muted); }
+    textarea { width: 100%; min-height: 72px; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; resize: vertical; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+    button { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font: inherit; cursor: pointer; }
+    button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    button.live { background: #dc2626; color: #fff; border-color: #dc2626; }
+    .out { margin-top: 10px; padding: 10px; background: #f4efe7; border-radius: 8px; min-height: 40px; white-space: pre-wrap; }
+    .status { padding: 8px 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+    .ok { background: #ecfdf5; color: #065f46; }
+    .warn { background: #fef3c7; color: #92400e; }
+    audio { width: 100%; margin-top: 10px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Voice Lab</h1>
+  <p class="sub">Checks speech-to-text and text-to-speech for both the household and the cook.</p>
+  <div id="status" class="status warn">Checking speech config…</div>
+
+  <section>
+    <h2>Household: speech to text</h2>
+    <div class="tag">Browser · Azure Speech JS SDK · en-IN · push-to-talk</div>
+    <div class="row">
+      <button id="talk" class="primary">Hold to talk</button>
+      <span class="tag">or tap once to start, tap again to stop</span>
+    </div>
+    <div id="heard" class="out"></div>
+  </section>
+
+  <section>
+    <h2>Household: text to speech</h2>
+    <div class="tag">Browser · streamed sentence by sentence, markdown stripped</div>
+    <textarea id="sayText">Theek hai! Tuesday ko rajma chawal, aur Papa ke liye brown rice alag. Riya ke liye no peanuts, even the oil. Sounds good?</textarea>
+    <div class="row">
+      <button id="say" class="primary">Speak</button>
+      <button id="stream">Speak as a stream</button>
+      <label><input type="checkbox" id="mute" /> Mute</label>
+    </div>
+  </section>
+
+  <section>
+    <h2>Cook: Hindi voice note</h2>
+    <div class="tag">Server · Azure TTS · hi-IN · one instruction per line, slower, with pauses</div>
+    <textarea id="cookText">सुनीता दीदी, आज दोपहर चार लोग और एक बच्चा।
+पहले दाल चढ़ा दीजिए।
+दादी जी के लिए नमक डालने से पहले थोड़ी दाल अलग निकाल लीजिए।
+जाते समय राजमा भिगो दीजिए।</textarea>
+    <div class="row"><button id="note" class="primary">Make voice note</button></div>
+    <audio id="noteAudio" controls hidden></audio>
+  </section>
+
+  <section>
+    <h2>Cook: Hindi reply to text</h2>
+    <div class="tag">Server · Azure short-audio STT · hi-IN · 16 kHz WAV recorded in the browser</div>
+    <div class="row"><button id="record" class="primary">Start recording</button></div>
+    <div id="reply" class="out"></div>
+  </section>
+</main>
+
+<script type="module">
+  import { Listener, Speaker } from "/js/speech.js";
+  import { WavRecorder } from "/js/recorder.js";
+
+  const $ = (id) => document.getElementById(id);
+
+  // Status
+  const health = await (await fetch("/health")).json();
+  $("status").className = `status ${health.speech_configured ? "ok" : "warn"}`;
+  $("status").textContent = health.speech_configured
+    ? "Azure Speech is configured."
+    : "AZURE_SPEECH_KEY is not set in .env. Speech calls will fail.";
+
+  // Household STT: hold-to-talk, or tap to toggle.
+  const listener = new Listener({
+    phrases: ["rajma", "chawal", "karela", "sabudana", "poha", "Dadi", "Papa", "Riya", "Instamart"],
+    onInterim: (text) => ($("heard").textContent = text),
+  });
+  let listening = false;
+  let pressedAt = 0;
+
+  async function startTalk() {
+    if (listening) return;
+    listening = true;
+    $("talk").classList.add("live");
+    $("talk").textContent = "Listening…";
+    $("heard").textContent = "";
+    try { await listener.start(); } catch (e) { $("heard").textContent = `Error: ${e.message ?? e}`; stopTalk(); }
+  }
+  async function stopTalk() {
+    if (!listening) return;
+    listening = false;
+    $("talk").classList.remove("live");
+    $("talk").textContent = "Hold to talk";
+    const text = await listener.stop();
+    $("heard").textContent = text || "(nothing heard)";
+  }
+  $("talk").addEventListener("pointerdown", () => {
+    pressedAt = Date.now();
+    listening ? stopTalk() : startTalk();
+  });
+  $("talk").addEventListener("pointerup", () => {
+    if (Date.now() - pressedAt > 400) stopTalk(); // long press = hold-to-talk; short = toggle
+  });
+
+  // Household TTS
+  const speaker = new Speaker();
+  $("mute").addEventListener("change", (e) => speaker.setMuted(e.target.checked));
+  $("say").addEventListener("click", () => speaker.say($("sayText").value));
+  $("stream").addEventListener("click", async () => {
+    // Simulates LLM deltas arriving a few characters at a time.
+    const text = $("sayText").value;
+    for (let i = 0; i < text.length; i += 6) {
+      speaker.feed(text.slice(i, i + 6));
+      await new Promise((r) => setTimeout(r, 40));
+    }
+    speaker.flush();
+  });
+
+  // Cook voice note (server TTS)
+  $("note").addEventListener("click", async () => {
+    $("note").disabled = true;
+    const res = await fetch("/api/speech/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: $("cookText").value, who: "cook" }),
+    });
+    $("note").disabled = false;
+    if (!res.ok) return alertBox($("noteAudio"), (await res.json()).detail);
+    const { audio_url } = await res.json();
+    $("noteAudio").src = audio_url;
+    $("noteAudio").hidden = false;
+    $("noteAudio").play();
+  });
+
+  // Cook reply (record WAV -> server STT)
+  const recorder = new WavRecorder();
+  let recording = false;
+  $("record").addEventListener("click", async () => {
+    if (!recording) {
+      await recorder.start();
+      recording = true;
+      $("record").classList.add("live");
+      $("record").textContent = "Stop and transcribe";
+      $("reply").textContent = "Recording… speak in Hindi.";
+      return;
+    }
+    recording = false;
+    $("record").classList.remove("live");
+    $("record").textContent = "Start recording";
+    $("reply").textContent = "Transcribing…";
+    const wav = await recorder.stop();
+    const res = await fetch("/api/speech/stt?language=hi-IN", { method: "POST", body: wav });
+    const body = await res.json();
+    $("reply").textContent = res.ok ? `${body.text || "(no speech recognised)"}  [${body.status}]` : `Error: ${body.detail}`;
+  });
+
+  function alertBox(anchor, message) {
+    const div = document.createElement("div");
+    div.className = "out";
+    div.textContent = `Error: ${message}`;
+    anchor.after(div);
+  }
+</script>
+</body>
+</html>
