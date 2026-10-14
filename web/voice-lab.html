@@ -167,7 +167,7 @@ Before you leave, please soak the rajma for tomorrow.</textarea>
     const wav = await recorder.stop();
     const res = await fetch("/api/speech/stt", { method: "POST", body: wav });
     const body = await res.json();
-    $("reply").textContent = res.ok ? `${body.text || "(no speech recognised)"}  [${body.status}]` : `Error: ${body.detail}`;
+    $("reply").textContent = res.ok ? body.text || "(no speech recognised)" : `Error: ${body.detail}`;
   });
 
   function alertBox(anchor, message) {

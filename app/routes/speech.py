@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Request
 
 from app import config
 from app.integrations import azure_speech
-from app.integrations.azure_speech import SpeechError, SpeechToken, Transcript
+from app.integrations.azure_speech import SpeechError, SpeechToken
 from app.models import Model
 
 router = APIRouter(prefix="/api/speech")
@@ -26,6 +26,10 @@ class TtsResponse(Model):
     audio_url: str
 
 
+class SttResponse(Model):
+    text: str
+
+
 @router.get("/token")
 def speech_token() -> SpeechToken:
     try:
@@ -37,18 +41,18 @@ def speech_token() -> SpeechToken:
 @router.post("/tts")
 def text_to_speech(body: TtsRequest) -> TtsResponse:
     try:
-        return TtsResponse(audio_url=azure_speech.synthesize_to_file(body.text, VOICES[body.who]))
+        return TtsResponse(audio_url=azure_speech.synthesize(body.text, VOICES[body.who]))
     except SpeechError as error:
         raise HTTPException(503, str(error)) from error
 
 
 @router.post("/stt")
-async def speech_to_text(request: Request, language: str = config.SPEECH_LANGUAGE) -> Transcript:
+async def speech_to_text(request: Request, language: str = config.SPEECH_LANGUAGE) -> SttResponse:
     """Body is a raw 16 kHz mono WAV (the browser recorder produces this)."""
     audio = await request.body()
     if not audio:
         raise HTTPException(400, "empty audio body")
     try:
-        return azure_speech.transcribe(audio, language)
+        return SttResponse(text=azure_speech.transcribe(audio, language))
     except SpeechError as error:
         raise HTTPException(503, str(error)) from error

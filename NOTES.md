@@ -28,7 +28,7 @@ Decisions made while building, where the spec was silent or we deviated.
 - **Cook replies are recorded in the browser as 16 kHz mono WAV**, because Azure short-audio STT
   accepts WAV/OGG but not the WebM that `MediaRecorder` produces. Clips are limited to ~60 s.
 - **Browser speech uses the Speech JS SDK pinned to 1.52.0** from jsDelivr, authenticated with a
-  token from `/api/speech/token` (cached server-side for 9 of its 10 minutes).
+  token from `/api/speech/token` (the browser reuses it for 9 of its 10 minutes).
 - **Household TTS speaks sentence by sentence** as text streams in (split on `. ? !` and `।`).
 - **English only for now** (household and cook): `SPEECH_LANGUAGE=en-IN`, cook voice
   `en-IN-NeerjaNeural`. Hindi was verified working (`hi-IN-SwaraNeural` TTS and hi-IN STT) and
