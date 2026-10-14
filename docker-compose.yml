@@ -15,5 +15,6 @@ services:
       - ./logs:/app/logs
       # Live code for development; uvicorn reloads on change.
       - ./app:/app/app:ro
+      - ./web:/app/web
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     restart: unless-stopped

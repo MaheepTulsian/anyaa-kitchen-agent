@@ -3,9 +3,11 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from app import config
 from app.models import StateSnapshot
+from app.routes import speech
 from app.services.snapshot import build_snapshot
 from app.store import connect, init_schema
 from app.store.households import ensure_household
@@ -21,6 +23,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Anyaa Kitchen Agent", lifespan=lifespan)
+app.include_router(speech.router)
 
 
 @app.get("/health")
@@ -40,3 +43,8 @@ def get_state() -> StateSnapshot:
         return build_snapshot(conn, config.HOUSEHOLD_ID)
     finally:
         conn.close()
+
+
+# Static UI last so API routes win. Audio dir is created up front for generated voice notes.
+(config.WEB_DIR / "audio").mkdir(parents=True, exist_ok=True)
+app.mount("/", StaticFiles(directory=config.WEB_DIR, html=True), name="web")

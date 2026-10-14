@@ -18,4 +18,6 @@ DB_PATH = Path(os.getenv("DB_PATH", "data/household.db"))
 LOG_PATH = Path(os.getenv("LOG_PATH", "logs/events.jsonl"))
 PLAN_WINDOW_DAYS = int(os.getenv("PLAN_WINDOW_DAYS", "3"))
 
+WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+
 HOUSEHOLD_ID = 1  # one household per DB file
