@@ -11,11 +11,12 @@ Requires Docker.
 
 ```bash
 cp .env.example .env        # fill in keys (optional until the agent milestone)
-docker compose up --build
+APP_PORT=8010 docker compose up --build -d   # any free host port
 ```
 
-- Health: <http://localhost:8000/health>
-- State: <http://localhost:8000/api/state>
+- Health: <http://localhost:8010/health>
+- State: <http://localhost:8010/api/state>
+- Voice lab: <http://localhost:8010/voice-lab.html>
 
 ## Layout
 
