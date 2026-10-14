@@ -16,9 +16,10 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
 COPY app ./app
+COPY web ./web
 
 RUN useradd --create-home --uid 1000 anyaa \
-    && mkdir -p /app/data /app/logs \
+    && mkdir -p /app/data /app/logs /app/web/audio \
     && chown -R anyaa:anyaa /app
 USER anyaa
 

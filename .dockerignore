@@ -11,3 +11,4 @@ data/*.db*
 logs
 tests
 evals
+web/audio
