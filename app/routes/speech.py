@@ -43,7 +43,7 @@ def text_to_speech(body: TtsRequest) -> TtsResponse:
 
 
 @router.post("/stt")
-async def speech_to_text(request: Request, language: str = "hi-IN") -> Transcript:
+async def speech_to_text(request: Request, language: str = config.SPEECH_LANGUAGE) -> Transcript:
     """Body is a raw 16 kHz mono WAV (the browser recorder produces this)."""
     audio = await request.body()
     if not audio:

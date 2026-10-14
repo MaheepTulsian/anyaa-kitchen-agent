@@ -1,5 +1,5 @@
 // Records the mic and returns a 16 kHz mono 16-bit WAV, the format Azure short-audio STT expects.
-// Used by the cook panel for Hindi voice replies.
+// Used by the cook panel for voice replies.
 
 const TARGET_RATE = 16000;
 

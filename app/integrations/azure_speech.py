@@ -1,4 +1,4 @@
-"""Azure Speech over REST: browser auth tokens, Hindi/English TTS, and short-audio STT.
+"""Azure Speech over REST: browser auth tokens, TTS, and short-audio STT.
 
 The subscription key never leaves the server; the browser only ever gets a 10-minute token.
 """
@@ -96,7 +96,7 @@ def synthesize_to_file(text: str, voice: str) -> str:
     return f"/audio/{name}"
 
 
-def transcribe(wav_16k_mono: bytes, language: str = "hi-IN") -> Transcript:
+def transcribe(wav_16k_mono: bytes, language: str = config.SPEECH_LANGUAGE) -> Transcript:
     """Short-audio STT (up to ~60 s). Expects 16 kHz, 16-bit mono PCM WAV."""
     url = (
         f"https://{config.AZURE_SPEECH_REGION}.stt.speech.microsoft.com"

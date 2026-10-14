@@ -46,7 +46,7 @@
   <section>
     <h2>Household: text to speech</h2>
     <div class="tag">Browser · streamed sentence by sentence, markdown stripped</div>
-    <textarea id="sayText">Theek hai! Tuesday ko rajma chawal, aur Papa ke liye brown rice alag. Riya ke liye no peanuts, even the oil. Sounds good?</textarea>
+    <textarea id="sayText">Okay! Rajma chawal on Tuesday, with brown rice on the side for Papa. No peanuts for Riya, not even the oil. Sounds good?</textarea>
     <div class="row">
       <button id="say" class="primary">Speak</button>
       <button id="stream">Speak as a stream</button>
@@ -55,19 +55,19 @@
   </section>
 
   <section>
-    <h2>Cook: Hindi voice note</h2>
-    <div class="tag">Server · Azure TTS · hi-IN · one instruction per line, slower, with pauses</div>
-    <textarea id="cookText">सुनीता दीदी, आज दोपहर चार लोग और एक बच्चा।
-पहले दाल चढ़ा दीजिए।
-दादी जी के लिए नमक डालने से पहले थोड़ी दाल अलग निकाल लीजिए।
-जाते समय राजमा भिगो दीजिए।</textarea>
+    <h2>Cook: voice note</h2>
+    <div class="tag">Server · Azure TTS · en-IN · one instruction per line, slower, with pauses</div>
+    <textarea id="cookText">Sunita didi, today lunch is for four adults and one child.
+Start the dal first.
+Before adding salt, keep a small bowl of dal aside for Dadi.
+Before you leave, please soak the rajma for tomorrow.</textarea>
     <div class="row"><button id="note" class="primary">Make voice note</button></div>
     <audio id="noteAudio" controls hidden></audio>
   </section>
 
   <section>
-    <h2>Cook: Hindi reply to text</h2>
-    <div class="tag">Server · Azure short-audio STT · hi-IN · 16 kHz WAV recorded in the browser</div>
+    <h2>Cook: voice reply to text</h2>
+    <div class="tag">Server · Azure short-audio STT · en-IN · 16 kHz WAV recorded in the browser</div>
     <div class="row"><button id="record" class="primary">Start recording</button></div>
     <div id="reply" class="out"></div>
   </section>
@@ -157,7 +157,7 @@
       recording = true;
       $("record").classList.add("live");
       $("record").textContent = "Stop and transcribe";
-      $("reply").textContent = "Recording… speak in Hindi.";
+      $("reply").textContent = "Recording… speak now.";
       return;
     }
     recording = false;
@@ -165,7 +165,7 @@
     $("record").textContent = "Start recording";
     $("reply").textContent = "Transcribing…";
     const wav = await recorder.stop();
-    const res = await fetch("/api/speech/stt?language=hi-IN", { method: "POST", body: wav });
+    const res = await fetch("/api/speech/stt", { method: "POST", body: wav });
     const body = await res.json();
     $("reply").textContent = res.ok ? `${body.text || "(no speech recognised)"}  [${body.status}]` : `Error: ${body.detail}`;
   });

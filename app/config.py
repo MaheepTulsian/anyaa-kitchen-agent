@@ -9,7 +9,9 @@ ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-haiku-5-5")
 AZURE_SPEECH_KEY = os.getenv("AZURE_SPEECH_KEY", "")
 AZURE_SPEECH_REGION = os.getenv("AZURE_SPEECH_REGION", "centralindia")
 AZURE_TTS_VOICE_HOUSEHOLD = os.getenv("AZURE_TTS_VOICE_HOUSEHOLD", "en-IN-NeerjaNeural")
-AZURE_TTS_VOICE_COOK = os.getenv("AZURE_TTS_VOICE_COOK", "hi-IN-SwaraNeural")
+AZURE_TTS_VOICE_COOK = os.getenv("AZURE_TTS_VOICE_COOK", "en-IN-NeerjaNeural")
+# English only for now; switch to hi-IN (+ hi-IN-SwaraNeural) to bring Hindi back.
+SPEECH_LANGUAGE = os.getenv("SPEECH_LANGUAGE", "en-IN")
 
 INSTAMART_MODE = os.getenv("INSTAMART_MODE", "mock")  # mock | mcp
 SWIGGY_MCP_URL = os.getenv("SWIGGY_MCP_URL", "https://mcp.swiggy.com/instamart")
