@@ -17,11 +17,13 @@ __pycache__/
 .ruff_cache/
 *.egg-info/
 
+# Large downloaded wheels (see scripts/fetch-agent-sdk.sh)
+vendor/
+
 # Runtime state
 data/*.db
 data/*.db-*
 logs/
-web/audio/
 
 # OS / editors
 .DS_Store

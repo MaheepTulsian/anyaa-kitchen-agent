@@ -76,30 +76,66 @@ function cleanForSpeech(text) {
     .trim();
 }
 
-// Speaks text sentence by sentence as it streams in. feed() takes deltas; flush() speaks the rest.
+// Natural speaking pace for Anyaa. Azure's default reads slow for a quick, chatty character.
+const RATE = "+15%";
+
+function escapeXml(text) {
+  return text.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" })[c]);
+}
+
+// Speaks Anyaa's replies. say() speaks a whole reply in one request (no gaps between sentences);
+// feed()/flush() speak streamed text sentence by sentence (used by the voice lab).
 export class Speaker {
   constructor() {
     this.muted = false;
     this.buffer = "";
-    this.synth = null;
+    this.synth = null; // Promise<SpeechSynthesizer>, shared by everything we say
+    this.synthAt = 0; // when it was created; Azure tokens expire after 10 minutes
+    this.queue = Promise.resolve(); // replies are spoken strictly one after another
   }
 
-  async #synth() {
-    if (!this.synth) {
-      const cfg = await speechConfig("en-IN");
-      this.synth = new SpeechSDK.SpeechSynthesizer(
-        cfg,
-        SpeechSDK.AudioConfig.fromDefaultSpeakerOutput(),
-      );
+  #synth() {
+    // Keep the promise, not the result, so replies arriving together share one synthesizer and
+    // never talk over each other. Rebuild it before the token expires.
+    if (!this.synth || Date.now() - this.synthAt > 9 * 60 * 1000) {
+      this.#drop();
+      this.synthAt = Date.now();
+      this.synth = speechConfig("en-IN").then((cfg) => {
+        const synth = new SpeechSDK.SpeechSynthesizer(cfg, SpeechSDK.AudioConfig.fromDefaultSpeakerOutput());
+        SpeechSDK.Connection.fromSynthesizer(synth).openConnection(); // connect now, not on the first word
+        return synth;
+      });
     }
     return this.synth;
   }
 
-  async say(text) {
+  #drop() {
+    this.synth?.then((s) => s.close()).catch(() => {});
+    this.synth = null;
+  }
+
+  // Get the token and the connection ready before Anyaa's first reply.
+  warm() {
+    this.#synth().catch(() => this.#drop());
+  }
+
+  say(text) {
     const clean = cleanForSpeech(text);
-    if (this.muted || !clean) return;
-    const synth = await this.#synth();
-    synth.speakTextAsync(clean, () => {}, (err) => console.error("TTS", err));
+    if (this.muted || !clean) return this.queue;
+    this.queue = this.queue.then(async () => {
+      try {
+        const synth = await this.#synth();
+        const { voice } = await getAuth();
+        const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-IN">` +
+          `<voice name="${voice}"><prosody rate="${RATE}">${escapeXml(clean)}</prosody></voice></speak>`;
+        const result = await new Promise((resolve, reject) => synth.speakSsmlAsync(ssml, resolve, reject));
+        if (result.reason === SpeechSDK.ResultReason.Canceled) throw new Error(result.errorDetails);
+      } catch (err) {
+        console.error("TTS", err); // a failed reply never blocks the next one
+        this.#drop(); // and the next one gets a fresh synthesizer and token
+      }
+    });
+    return this.queue;
   }
 
   feed(delta) {
@@ -118,10 +154,8 @@ export class Speaker {
 
   stop() {
     this.buffer = "";
-    if (this.synth) {
-      this.synth.close();
-      this.synth = null;
-    }
+    this.queue = Promise.resolve();
+    this.#drop();
   }
 
   setMuted(muted) {
