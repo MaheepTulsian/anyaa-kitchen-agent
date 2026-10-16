@@ -4,7 +4,7 @@ A voice agent for the Indian household kitchen. It gets to know the family, plan
 them, turns the plan into an Instamart cart and a sabziwala list, and then works with the cook every day
 on Telegram so the plan actually gets cooked.
 
-> **Submission:** demo video: **[Google Drive](https://drive.google.com/drive/folders/1HxCjsXXMq0BdRLDUDv1ypbt1-Q3MHdon?usp=sharing)** · write-up: **[WRITEUP.md](WRITEUP.md)** · deeper notes: [`docs/`](docs)
+> demo video: **[Google Drive](https://drive.google.com/drive/folders/1HxCjsXXMq0BdRLDUDv1ypbt1-Q3MHdon?usp=sharing)** · write-up: **[WRITEUP.md](WRITEUP.md)** · deeper notes: [`docs/`](docs)
 
 Two ideas shape every decision:
 
