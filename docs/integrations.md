@@ -2,7 +2,7 @@
 
 | | Status | Where |
 |---|---|---|
-| LLM | **Real**: Claude Agent SDK on the local Claude login (`LLM_MODEL=sonnet`) | `app/agent.py` |
+| LLM | **Real**: Claude Agent SDK on the local Claude login (`LLM_MODEL=haiku`) | `app/agent.py` |
 | Speech | **Real**: Azure Speech, `en-IN` | `app/speech.py`, `web/js/speech.js` |
 | Instamart | **Real** Swiggy MCP when logged in, otherwise a **mock** | `app/swiggy.py`, `app/instamart.py` |
 | WhatsApp | `wa.me` links only (one-way) | planned |

@@ -1,76 +1,61 @@
 # Anyaa: write-up
 
-## What it is
+## What it does
 
-A voice agent for the Indian household kitchen with two jobs. **With the household**, it learns the
-family in a short conversation, proposes the week's meals (today and tomorrow first, then the rest),
-and fills the Instamart cart with one yes, with vegetables going to the sabziwala as a WhatsApp list.
-**With the cook**, it first shows the family what's coming ("change anything?"), then sends the cook a
-short brief and a voice note on Telegram, handles their replies ("paneer khatam", "1 ghanta late",
-"atta running low") and checks in at the end. Whatever one side does, the other hears about.
+- **With the household** (voice in the browser): learns the family in five short parts, plans today and
+  tomorrow first and then the rest of the week, and fills the Instamart cart on a yes. Vegetables go to
+  the sabziwala as a `wa.me` list.
+- **With the cook** (Telegram): before each visit the family sees what's coming and can change it. Then
+  the cook gets a short brief (text + voice note). The cook can reply that something ran out, is low,
+  they're late, or ask how to make a dish. After the visit there's a wrap-up question.
 
 ## Key decisions
 
-1. **The household barely talks; the cook talks every day.** The person running the kitchen is tired of
-   deciding. So Anyaa proposes and they say yes; onboarding is about five short parts, the week is one
-   or two turns, groceries one yes. Ongoing context (what ran out, what was left, who didn't eat the
-   bhindi) comes from the cook, who sees it first.
-2. **Two agents, nodes, code in charge.** A household agent and a cook agent on the Claude Agent SDK.
-   Each node has its own prompt, only its own tools, and a code-checked exit, so the model can't skip a
-   step or wander into another topic's tools. Two agents also keep privacy structural: the cook agent's
-   context never contains the family's health notes, so it can't leak "Papa's BP".
-3. **Safety is a separate step.** Planning juggles taste, nutrition, variety and the cook's time, so an
-   allergy is easy to drop. A second, focused LLM call checks every dish and ingredient (oil, tempering,
-   garnish) against every strict note and diet; unsafe plans can't be agreed. Every cook-side change
-   (a swap, a quicker dish) goes through the same check, and anything unsafe goes to the family as A/B.
-4. **Free-form notes, not a schema.** Families say things that don't fit fields ("itchy with arbi, but
-   traces are fine", "no rice at dinner"). Everything is a short note with `strict` and the user's exact
-   words, which the planner and the checker read directly.
-5. **Prompts written against observed failures.** Each guardrail traces to a real test: facts lost
-   when asked in the wrong part (now parked and sorted later, and confirm refuses until they are), the
-   model echoing its prompt or stage directions (cleaned in code), copied example lines, "tonight" for
-   tomorrow's breakfast, asking the user to choose after "you decide".
-6. **Code decides the risky parts, not the model.** Which meal a cook-side swap may touch (the next
-   not-yet-cooked meal that uses the missing item; nothing else changes), whether a diet matches the
-   user's own words, what the confirmation summary says (facts written by code), whether the cook must
-   hear about a family change now (only if already briefed). Each of these was a real failure first.
-7. **One meal, small tweaks.** The planner aims for one base meal per sitting with per-person changes at
-   the exact step ("take out Papa ji's portion before the salt"), and a separate dish only when a diet
-   requires it, from a shared base. Nutrition (protein every meal, greens, whole grains, treats as
-   treats) is planned in, but spoken about only through taste.
+- **Anyaa proposes, the family says yes.** Few, short questions for the household. Day-to-day
+  information (what ran out, leftovers, feedback) comes from the cook.
+- **Two agents built from nodes, on the Claude Agent SDK.** Each node has its own prompt and only its own
+  tools. It ends through a `*_done` tool whose conditions are checked in code. The cook agent's context
+  doesn't include the family's health notes.
+- **Some rules are enforced in code, not left to the prompt:**
+  - a diet must match the user's own words;
+  - facts said in the wrong part are parked, and the profile can't be confirmed while any are parked;
+  - the confirmation summary is built from saved facts;
+  - when the cook reports a missing item, code picks the one meal that may change;
+  - the cook hears about a family change at once only if they were already briefed for that meal.
+- **A separate safety check.** After planning, a second LLM call checks the dishes and ingredients
+  against strict notes and diets. A plan with open issues can't be agreed.
+- **Free-form notes.** Preferences are short notes with `strict` and the user's exact words, rather
+  than fixed fields.
 
 ## Trade-offs
 
-- **Claude Agent SDK on a subscription login** during development: simple and capable, but each turn
-  starts a CLI process (about 5 to 10 seconds) and usage limits apply. Planning a week takes about a
-  minute even split into parallel steps; it starts in the background the moment the profile is confirmed.
-- **Haiku by default** for cost. Sonnet labelled diets more reliably; the code-side guardrails (diet
-  confirmation, parking, the safety check) are there so the cheaper model stays safe.
-- **Instamart serviceability is assumed**: late at night Swiggy reports the address as not serviceable;
-  that cart step then runs on the mock catalog (logged) so the flow can be shown at any hour.
+- **Agent SDK on a Claude subscription login:** no API credits needed, but each turn starts a CLI
+  process, so replies are slow-ish and usage limits apply. Planning a week takes about a minute.
+- **Haiku by default** to keep cost low. The code checks above matter more because of it.
 - **Telegram instead of WhatsApp** for the cook: WhatsApp Cloud API needs paid templates to message first.
-  The sabziwala still gets a WhatsApp list as a `wa.me` link.
-- **Instamart cart only**: the Swiggy MCP can place real cash-on-delivery orders, so only five tools are
-  allowlisted; it never checks out.
+- **Instamart is cart only.** Five Swiggy MCP tools are allowlisted, and none of them places an order.
+  If Swiggy says the address isn't serviceable right now, that cart step uses the mock catalog
+  instead (logged).
 
-## How it stays performant today, without an eval suite
+## Left out
 
-Every turn is logged (`logs/events.jsonl`: node, tool calls with arguments and results, reply, timings).
-Each conversation I ran was read from these logs. Every failure became a code guard or a prompt rule with
-the real example (the table in `docs/agents.md`). Guards in code don't regress when a prompt changes;
-the eval suite below is what's missing to catch prompt regressions automatically.
+- Evals.
+- Ordering and payments.
+- Hindi and other languages: English only; Hindi voices are a config change.
+- Nutrition numbers.
+- Pantry tracking beyond what the cook reports.
+- Multiple households and accounts.
 
-## Left out on purpose
+## How I checked it
 
-Evals (next, see below), payments and ordering, Hindi and other languages for the cook (tested, switched off for
-now), nutrition maths and calorie counts, pantry tracking beyond what the cook reports, multiple
-households, accounts and auth, continuous listening.
+Every turn is logged to `logs/events.jsonl` (node, tool calls with results, reply, timings). I read the
+logs of each test conversation and turned failures into code checks or prompt rules (listed in
+`docs/agents.md`). There's no automated eval suite yet.
 
 ## What's next
 
-1. **Evals**: scripted messy households run end to end by a simulated user; check strict-note recall,
-   zero safety issues in plans, parked notes sorted, turns to confirm, tone, latency (from the turn logs).
-2. Hindi and Kannada voice notes for cooks (Hindi already works through Azure, switched off); WhatsApp
-   Business API with templates instead of Telegram.
-3. Learning from cook feedback over weeks (dishes left uneaten drop out, favourites come back).
-4. Faster turns on the Anthropic API directly, with prompt caching for the persona.
+1. **Evals:** scripted messy households played by a simulated user, checking strict-note recall, safety
+   issues in plans, tone and latency.
+2. Hindi voice notes for cooks; WhatsApp Business API.
+3. Using cook feedback over weeks to shape plans.
+4. The Anthropic API directly with prompt caching, for faster turns.
