@@ -109,7 +109,7 @@ sequenceDiagram
     A-->>C: (only if already briefed for that meal) Small change from the family...
     A->>C: Wrap-up: anything finished? leftovers? did everyone eat?
     C->>A: atta running low
-    A->>F: Raju says atta is running low; added to your Instamart cart, please order.
+    A->>F: Raju says atta is running low, added to your Instamart cart, please order.
 ```
 
 | One side does | The other side hears |
