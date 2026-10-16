@@ -1,14 +1,19 @@
-"""App config from environment variables (docker compose loads them from .env)."""
+"""App config from environment variables. Values in .env win, so editing .env and saving any file
+(the dev server reloads) is enough to change a setting; Docker compose loads the same file."""
 
 import os
 from pathlib import Path
 
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-haiku-5-5")
+_ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
+if _ENV_FILE.exists():
+    for _line in _ENV_FILE.read_text(encoding="utf-8").splitlines():
+        if "=" in _line and not _line.lstrip().startswith("#"):
+            _key, _value = _line.split("=", 1)
+            os.environ[_key.strip()] = _value.strip()
 
-# agent_sdk: Claude Agent SDK on the local Claude login (dev) | api: Anthropic API key (later)
-LLM_BACKEND = os.getenv("LLM_BACKEND", "agent_sdk")
-LLM_MODEL = os.getenv("LLM_MODEL", ANTHROPIC_MODEL)
+# Claude Agent SDK model alias (haiku | sonnet | opus); auth comes from the Claude login,
+# or CLAUDE_CODE_OAUTH_TOKEN in Docker.
+LLM_MODEL = os.getenv("LLM_MODEL", "haiku")  # cheapest per token
 
 AZURE_SPEECH_KEY = os.getenv("AZURE_SPEECH_KEY", "")
 AZURE_SPEECH_REGION = os.getenv("AZURE_SPEECH_REGION", "centralindia")
@@ -23,10 +28,10 @@ SWIGGY_AUTH_URL = "https://mcp.swiggy.com/auth"
 
 DB_PATH = Path(os.getenv("DB_PATH", "data/household.db"))
 LOG_PATH = Path(os.getenv("LOG_PATH", "logs/events.jsonl"))
-PLAN_WINDOW_DAYS = int(os.getenv("PLAN_WINDOW_DAYS", "3"))
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 WEB_DIR = ROOT_DIR / "web"
 DATA_DIR = ROOT_DIR / "data"
 
-HOUSEHOLD_ID = 1  # one household per DB file
+# Telegram bot from @BotFather; people link their phone number by opening the bot once.
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")

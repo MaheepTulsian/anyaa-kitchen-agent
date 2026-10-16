@@ -37,6 +37,22 @@ main { flex: 1; display: grid; grid-template-columns: 1fr 340px; min-height: 0; 
 .chip { display: inline-block; margin: 4px 4px 0 0; padding: 1px 8px; border-radius: 999px; font-size: 12px; background: var(--soft); }
 .chip.allergy { background: #fee2e2; color: var(--danger); font-weight: 600; }
 .chip.hard { border: 1px solid var(--danger); }
+.day { margin: 10px 0 4px; font-weight: 600; font-size: 13px; }
+.meal { padding: 4px 0 6px 8px; border-left: 2px solid var(--line); margin-bottom: 4px; font-size: 13px; }
+.meal .label { color: var(--muted); text-transform: capitalize; }
+.note { color: var(--muted); font-size: 12px; padding-left: 8px; }
+.prep { background: #fff7ed; border-radius: 8px; padding: 6px 8px; font-size: 12px; margin: 6px 0; }
+.warn { color: var(--danger); font-size: 12px; }
+a.button { display: inline-block; margin-top: 6px; padding: 6px 12px; border-radius: 8px; background: #16a34a; color: #fff; text-decoration: none; font-size: 13px; }
+.steps { display: flex; flex-wrap: wrap; gap: 4px; }
+.step { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--soft); color: var(--muted); }
+.step.done { background: #ecfdf5; color: var(--ok); }
+.step.now { background: var(--accent); color: #fff; font-weight: 600; }
+.cooklog { max-height: 260px; overflow-y: auto; margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.cmsg { font-size: 12px; padding: 6px 9px; border-radius: 10px; white-space: pre-wrap; max-width: 92%; }
+.cmsg.anyaa { background: #e7f6ec; align-self: flex-start; }
+.cmsg.cook { background: var(--soft); align-self: flex-end; }
+#cookForm input { flex: 1; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 12px; }
 .debug { margin-top: 18px; font-size: 12px; }
 .debug .call { padding: 4px 0; border-bottom: 1px dashed var(--line); word-break: break-word; }
 .debug .bad { color: var(--danger); }

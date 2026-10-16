@@ -1,6 +1,10 @@
-"""Simulated clock, stored in the DB so demos and evals can jump between cook visits."""
+"""Simulated clock: real time plus an offset, so demos and evals can jump ahead to the next cook visit.
+
+The offset is stored in the database. With no offset, it's simply the real time in India.
+"""
 
 import datetime as dt
+import json
 import sqlite3
 from zoneinfo import ZoneInfo
 
@@ -11,22 +15,22 @@ def real_now() -> dt.datetime:
     return dt.datetime.now(IST).replace(second=0, microsecond=0)
 
 
-def now(conn: sqlite3.Connection, household_id: int) -> dt.datetime:
-    """Simulated current time; starts at the real time on first read."""
-    row = conn.execute(
-        "SELECT now FROM sim_clock WHERE household_id = ?", (household_id,)
-    ).fetchone()
-    if row:
-        return dt.datetime.fromisoformat(row["now"])
-    current = real_now()
-    set_now(conn, household_id, current)
-    return current
+def _offset(conn: sqlite3.Connection) -> dt.timedelta:
+    row = conn.execute("SELECT now FROM clock WHERE id = 1").fetchone()
+    if row and row["now"].startswith("{"):
+        return dt.timedelta(minutes=json.loads(row["now"])["offset_minutes"])
+    return dt.timedelta(0)  # no offset yet (or an old fixed-time value): real time
 
 
-def set_now(conn: sqlite3.Connection, household_id: int, value: dt.datetime) -> None:
+def now(conn: sqlite3.Connection) -> dt.datetime:
+    return real_now() + _offset(conn)
+
+
+def set_now(conn: sqlite3.Connection, value: dt.datetime) -> None:
+    """Make the simulated time `value` from now on (it keeps moving forward with real time)."""
+    minutes = round((value.astimezone(IST) - real_now()).total_seconds() / 60)
     conn.execute(
-        "INSERT INTO sim_clock (household_id, now) VALUES (?, ?) "
-        "ON CONFLICT (household_id) DO UPDATE SET now = excluded.now",
-        (household_id, value.astimezone(IST).isoformat()),
+        "INSERT INTO clock (id, now) VALUES (1, ?) ON CONFLICT (id) DO UPDATE SET now = excluded.now",
+        (json.dumps({"offset_minutes": minutes}),),
     )
     conn.commit()
